@@ -1,1 +1,6 @@
 powerone backend repo
+
+1. Directory description.
+   OneCloud     Eclipse project for One-Control, include source files.
+   doc		Document files.
+   deploy	Deploy image.
