@@ -1,0 +1,6 @@
+ip=172.28.101.11
+bmctarget=172.28.101.41
+mask=255.255.255.0
+gateway=172.28.101.1
+mac=3a:a4:de:66:90:AA
+name=primaryserver

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Admin Console Page</title>
+	<style type=text/css>
+		.border {
+                        border-top: 3px solid  #c0c0c0;
+                        border-left: 3px solid  #c0c0c0;
+                        border-right: 3px solid  #c0c0c0;
+                        border-bottom: 3px solid  #c0c0c0;
+                }
+		.subsection {
+                        background:  #eeeeee;
+                        height: 30px;
+			font-size: 17px;
+                        padding: 10px;
+			cursor: pointer;
+                        border-radius:4px;
+			text-align: left;
+			margin: 0px;
+			margin-bottom:1px;
+                }
+
+	</style>
+	<script type="text/javascript">
+		function Toggle(event) {
+			eventH =  event || window.event;
+			var t = eventH.target;
+			if (t == null) {
+				t = event.srcElement;
+			}
+			var ids = t.id;
+			t.style.background = "#eeeeee";
+
+			if (ids == "adminuser"){
+				window.location.href='/cgi-bin/modifyAdminUserPassword.sh'	
+			}
+			else if (ids == "server"){
+				window.location.href='/cgi-bin/showServerInfo.sh'
+			}
+			else if (ids == "cabinet"){
+				window.location.href='/cgi-bin/showHardwareInfo.sh'
+			}
+			else {
+				window.open('/cgi-bin/getSystemLog.sh')
+			}
+		}
+
+		function ChangeColor(event) {
+			eventH =  event || window.event;
+                        var t = eventH.target;
+                        if (t == null) {
+                                t = event.srcElement;
+                        }
+			t.style.background = "#d9d9d9";
+		}
+	
+		function RestoreColor(event) {
+			eventH =  event || window.event;
+                        var t = eventH.target;
+                        if (t == null) {
+                                t = event.srcElement;
+                        }
+                        t.style.background = "#eeeeee";
+		}
+		
+		function Init() {
+			var height = document.documentElement.clientHeight;
+			var width = document.documentElement.clientWidth;
+			var heightMidder = parseInt(height * 0.75);
+			var heightMidderIn = parseInt(heightMidder * 0.98);
+			var heightHeader = parseInt(height * 0.08);
+			var heightFooter = parseInt(height * 0.05);
+			var heightImag = parseInt(height * 0.07);
+			var widthBanner = parseInt(width * 0.45)
+			document.getElementById("mid").style.height= heightMidder+"px";
+			document.getElementById("header").style.height= heightHeader+"px";
+			document.getElementById("footer").style.height= heightFooter+"px";
+			document.getElementById("header").style["line-height"]= heightHeader+"px";
+			document.getElementById("image").height= heightImag;
+			document.getElementById("logout").style.height= heightImag+"px";
+			document.getElementById("midleft").style.height= heightMidderIn+"px";
+			document.getElementById("midright").style.height= heightMidderIn+"px";
+			document.getElementById("banner").style.height= heightImag+"px";
+			document.getElementById("banner").style["line-height"]= heightImag+"px";
+
+		}
+
+		function checkSubmit() {
+                        var old = login.old.value;
+                        var newp = login.newp.value;
+                        var newconf = login.newconf.value;
+                
+                        if(old.length == 0 || newp.length == 0 || newconf.length ==0){
+                                alert("please input all fields!")
+                                return false;
+                        }
+
+                        if(! /^[0-9a-zA-Z]*$/.test(old) || ! /^[0-9a-zA-Z]*$/.test(newp) || ! /^[0-9a-zA-Z]*$/.test(newconf)){
+                                alert("password filed only include digits[0-9] and characters[a-zA-Z]!")
+                                return false;
+                        }
+
+                        if( newp != newconf ){
+                                alert("new password field and pass confirm field is different!")
+                                return false;
+                        }
+
+                        if (newconf.length < 6 || newconf.length >15) {
+                                alert("new password length should between 6 and 15!")
+                                return false;
+                        }
+                        return true;                    
+                }       
+		
+		window.onload = Init;
+	</script>	
+</head>
+<body>
+	<div id="header" style="height: 100px; text-align: center; line-height:100px; background-color:#eeeeee">
+		<img id="image" height="65" width="100" style="float:left" src="/static/img/header.jpg" />
+		<span id="banner" style="font-size: 20px; margin-left: 35%;float:left; height=30px; line-height:30px;text-align: center; padding:8px">Administrator Console</span>
+		<input id="logout" type="button" style="float:right; background-color:red; width:100px; height:30px; border-radius: 4px; cursor: pointer" onclick="window.location.href='/cgi-bin/logout.sh'" value="Logout">
+	</div>
+	<br />
+	<div id="mid" style="height:300px;overflow:auto;overflow-x:hidden;">
+		<div id="midleft" class="border" style="float:left; width:20%;height:280px">
+			<p id="adminuser" class="subsection" onclick="Toggle(event)" onmouseover="ChangeColor(event)" onmouseleave="RestoreColor(event)">Modify Admin Password</p>
+			<p id="server" class="subsection" onclick="Toggle(event)" onmouseover="ChangeColor(event)" onmouseleave="RestoreColor(event)">Show Server Status</p>
+			<p id="cabinet" class="subsection" onclick="Toggle(event)" onmouseover="ChangeColor(event)" onmouseleave="RestoreColor(event)">Show Cabinet Status</p>
+			<p id="systemlog" class="subsection" onclick="Toggle(event)" onmouseover="ChangeColor(event)" onmouseleave="RestoreColor(event)">Get System Log</p>
+		</div>
+		<div id="midright" class="border" style="float:right; width:78%;height:280px">
+			<p align="center" style="font-size: 20px; margin-top: 200px">Welcome to Administrator Console!</p>
+		</div>
+	</div>
+	<hr />
+  	<div id="footer" style="height: 100px; text-align:center">
+                Copyright © 2016 OneCloud，Inc . All rights reserved.
+        </div>
+
+</body>
+</html>

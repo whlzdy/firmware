@@ -1,0 +1,4 @@
+*/1 * * * * /opt/onecloud/script/server/cron/check_http_server.sh
+1 * * * * /opt/onecloud/script/server/cron/logmanage.sh
+*/1 * * * * /opt/onecloud/script/server/gprs/checkgprs.sh >> /opt/onecloud/log/GPRS.log 2>&1 &
+*/5 * * * * /opt/onecloud/script/app/check_app_ws_conn.sh 2>&1 &

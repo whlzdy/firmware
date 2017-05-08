@@ -1,0 +1,151 @@
+#
+# Makefile
+#
+#  Created on: Mar 2, 2017
+#      Author: weiwen.gan
+#
+######################################
+
+
+DIR_SRC = ./src
+DIR_BIN = ./bin
+DIR_OBJ = ./obj
+DIR_COMMON_SRC = ./src/common
+DIR_UTIL_SRC = ./src/util
+DIR_COMMON_OBJ = ./obj/common
+DIR_UTIL_OBJ = ./obj/util
+
+LIB_FLAG = -lpthread -lrt
+#CC = gcc
+CC = g++
+CFLAGS = -g -O0 -Wall -fno-strict-aliasing $(LIB_FLAG) -I./ -I./src/
+CPP = g++ -E
+
+MAIN_DAEMON_PROG = main_daemon
+MAIN_DAEMON_SRC = ${DIR_SRC}/main_daemon.c
+MAIN_DAEMON_BIN = ${DIR_BIN}/${MAIN_DAEMON_PROG}
+MAIN_DAEMON_TGT = $(DIR_OBJ)/main_daemon.o
+
+MONITOR_CLIENT_PROG = monitor_client
+MONITOR_CLIENT_SRC = ${DIR_SRC}/monitor_client.c
+MONITOR_CLIENT_BIN = ${DIR_BIN}/${MONITOR_CLIENT_PROG}
+MONITOR_CLIENT_TGT = $(DIR_OBJ)/monitor_client.o
+
+SCRIPT_DAEMON_PROG = script_daemon
+SCRIPT_DAEMON_SRC = ${DIR_SRC}/script_daemon.c
+SCRIPT_DAEMON_BIN = ${DIR_BIN}/${SCRIPT_DAEMON_PROG}
+SCRIPT_DAEMON_TGT = $(DIR_OBJ)/script_daemon.o
+
+GPIO_DAEMON_PROG = gpio_daemon
+GPIO_DAEMON_SRC = ${DIR_SRC}/gpio_daemon.c
+GPIO_DAEMON_BIN = ${DIR_BIN}/${GPIO_DAEMON_PROG}
+GPIO_DAEMON_TGT = $(DIR_OBJ)/gpio_daemon.o
+
+SIM_DAEMON_PROG = sim_daemon
+SIM_DAEMON_SRC = ${DIR_SRC}/sim_daemon.c
+SIM_DAEMON_BIN = ${DIR_BIN}/${SIM_DAEMON_PROG}
+SIM_DAEMON_TGT = $(DIR_OBJ)/sim_daemon.o
+
+COM_DAEMON_PROG = com_daemon
+COM_DAEMON_SRC = ${DIR_SRC}/com_daemon.c
+COM_DAEMON_BIN = ${DIR_BIN}/${COM_DAEMON_PROG}
+COM_DAEMON_TGT = $(DIR_OBJ)/com_daemon.o
+
+WATCH_DOG_PROG = watch_dog
+WATCH_DOG_SRC = ${DIR_SRC}/watch_dog.c
+WATCH_DOG_BIN = ${DIR_BIN}/${WATCH_DOG_PROG}
+WATCH_DOG_TGT = $(DIR_OBJ)/watch_dog.o
+
+APP_SERVICE_PROG = app_service
+APP_SERVICE_SRC = ${DIR_SRC}/app_service.cpp
+APP_SERVICE_BIN = ${DIR_BIN}/${APP_SERVICE_PROG}
+APP_SERVICE_TGT = $(DIR_OBJ)/app_service.opp
+
+HTTP_SIGN_PROG = http_sign
+HTTP_SIGN_SRC = ${DIR_SRC}/http_sign.c
+HTTP_SIGN_BIN = ${DIR_BIN}/${HTTP_SIGN_PROG}
+HTTP_SIGN_TGT = $(DIR_OBJ)/http_sign.o
+
+TEMPERATURE_DAEMON_PROG = temperature_daemon
+TEMPERATURE_DAEMON_SRC = ${DIR_SRC}/temperature_daemon.c
+TEMPERATURE_DAEMON_BIN = ${DIR_BIN}/${TEMPERATURE_DAEMON_PROG}
+TEMPERATURE_DAEMON_TGT = $(DIR_OBJ)/temperature_daemon.o
+
+ELECTRICITY_DAEMON_PROG = electricity_daemon
+ELECTRICITY_DAEMON_SRC = ${DIR_SRC}/electricity_daemon.c
+ELECTRICITY_DAEMON_BIN = ${DIR_BIN}/${ELECTRICITY_DAEMON_PROG}
+ELECTRICITY_DAEMON_TGT = $(DIR_OBJ)/electricity_daemon.o
+
+ELECTRICITY_CTRL_PROG = electricity_ctrl
+ELECTRICITY_CTRL_SRC = ${DIR_SRC}/electricity_ctrl.c
+ELECTRICITY_CTRL_BIN = ${DIR_BIN}/${ELECTRICITY_CTRL_PROG}
+ELECTRICITY_CTRL_TGT = $(DIR_OBJ)/electricity_ctrl.o
+
+COMMON_SRC = $(wildcard ${DIR_COMMON_SRC}/*.c)
+COMMON_TGT=$(patsubst %.c,${DIR_COMMON_OBJ}/%.o,$(notdir ${COMMON_SRC})) 
+
+UTIL_SRC = $(wildcard ${DIR_UTIL_SRC}/*.c)
+UTIL_TGT=$(patsubst %.c,${DIR_UTIL_OBJ}/%.o,$(notdir ${UTIL_SRC}))
+
+WS_SRC = $(wildcard ${DIR_UTIL_SRC}/*.cpp)
+WS_TGT=$(patsubst %.cpp,${DIR_UTIL_OBJ}/%.opp,$(notdir ${WS_SRC}))
+
+all:$(MAIN_DAEMON_BIN) $(MONITOR_CLIENT_BIN) $(SCRIPT_DAEMON_BIN) $(GPIO_DAEMON_BIN) $(SIM_DAEMON_BIN) $(COM_DAEMON_BIN) $(WATCH_DOG_BIN) $(APP_SERVICE_BIN) $(HTTP_SIGN_BIN) $(TEMPERATURE_DAEMON_BIN) $(ELECTRICITY_DAEMON_BIN) $(ELECTRICITY_CTRL_BIN)
+#all:
+#	@echo $(WS_TGT)
+
+
+$(DIR_OBJ)/%.o:$(DIR_SRC)/%.c
+	$(CC) $(CFLAGS) -c $? -o $@
+	
+$(DIR_OBJ)/%.opp:$(DIR_SRC)/%.cpp
+	$(CC) $(CFLAGS) -c $? -o $@
+
+$(DIR_COMMON_OBJ)/%.o:$(DIR_COMMON_SRC)/%.c
+	$(CC) $(CFLAGS) -c $? -o $@
+
+$(DIR_UTIL_OBJ)/%.o:$(DIR_UTIL_SRC)/%.c
+	$(CC) $(CFLAGS) -c $? -o $@
+
+$(DIR_UTIL_OBJ)/%.opp:$(DIR_UTIL_SRC)/%.cpp
+	$(CC) $(CFLAGS) -c $? -o $@
+
+$(MAIN_DAEMON_BIN):$(MAIN_DAEMON_TGT) $(COMMON_TGT) $(UTIL_TGT)
+	$(CC) $(LIB_FLAG) -o $@ $(MAIN_DAEMON_TGT) $(COMMON_TGT) $(UTIL_TGT)
+
+$(MONITOR_CLIENT_BIN):$(MONITOR_CLIENT_TGT) $(COMMON_TGT) $(UTIL_TGT)
+	$(CC) $(LIB_FLAG) -o $@ $(MONITOR_CLIENT_TGT) $(COMMON_TGT) $(UTIL_TGT)
+
+$(SCRIPT_DAEMON_BIN):$(SCRIPT_DAEMON_TGT) $(COMMON_TGT) $(UTIL_TGT)
+	$(CC) $(LIB_FLAG) -o $@ $(SCRIPT_DAEMON_TGT) $(COMMON_TGT) $(UTIL_TGT)
+
+$(GPIO_DAEMON_BIN):$(GPIO_DAEMON_TGT) $(COMMON_TGT) $(UTIL_TGT)
+	$(CC) $(LIB_FLAG) -o $@ $(GPIO_DAEMON_TGT) $(COMMON_TGT) $(UTIL_TGT)
+
+$(SIM_DAEMON_BIN):$(SIM_DAEMON_TGT) $(COMMON_TGT) $(UTIL_TGT)
+	$(CC) $(LIB_FLAG) -o $@ $(SIM_DAEMON_TGT) $(COMMON_TGT) $(UTIL_TGT)
+
+$(COM_DAEMON_BIN):$(COM_DAEMON_TGT) $(COMMON_TGT) $(UTIL_TGT)
+	$(CC) $(LIB_FLAG) -o $@ $(COM_DAEMON_TGT) $(COMMON_TGT) $(UTIL_TGT)
+
+$(WATCH_DOG_BIN):$(WATCH_DOG_TGT) $(COMMON_TGT) $(UTIL_TGT)
+	$(CC) $(LIB_FLAG) -o $@ $(WATCH_DOG_TGT) $(COMMON_TGT) $(UTIL_TGT)
+
+$(HTTP_SIGN_BIN):$(HTTP_SIGN_TGT) $(COMMON_TGT) $(UTIL_TGT)
+	$(CC) $(LIB_FLAG) -o $@ $(HTTP_SIGN_TGT) $(COMMON_TGT) $(UTIL_TGT)
+
+$(APP_SERVICE_BIN):$(APP_SERVICE_TGT) $(COMMON_TGT) $(UTIL_TGT) $(WS_TGT)
+	$(CC) $(LIB_FLAG) -o $@ $(APP_SERVICE_TGT) $(COMMON_TGT) $(UTIL_TGT) $(WS_TGT)
+
+$(TEMPERATURE_DAEMON_BIN):$(TEMPERATURE_DAEMON_TGT) $(COMMON_TGT) $(UTIL_TGT)
+	$(CC) $(LIB_FLAG) -o $@ $(TEMPERATURE_DAEMON_TGT) $(COMMON_TGT) $(UTIL_TGT)
+
+$(ELECTRICITY_DAEMON_BIN):$(ELECTRICITY_DAEMON_TGT) $(COMMON_TGT) $(UTIL_TGT)
+	$(CC) $(LIB_FLAG) -o $@ $(ELECTRICITY_DAEMON_TGT) $(COMMON_TGT) $(UTIL_TGT)
+
+$(ELECTRICITY_CTRL_BIN):$(ELECTRICITY_CTRL_TGT) $(COMMON_TGT) $(UTIL_TGT)
+	$(CC) $(LIB_FLAG) -o $@ $(ELECTRICITY_CTRL_TGT) $(COMMON_TGT) $(UTIL_TGT)
+
+.PHONY:clean
+clean:
+	find . -name *.o -exec rm -rf {} \;

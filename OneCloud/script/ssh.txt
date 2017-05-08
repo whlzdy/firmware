@@ -1,0 +1,7 @@
+
+
+[root@localhost .ssh]# ssh-copy-id -i id_rsa.pub root@172.28.101.22
+[root@localhost .ssh]# ssh-copy-id -i id_rsa.pub clouder@172.28.101.22
+
+[root@localhost .ssh]# ssh-copy-id -i id_rsa.pub root@172.28.101.23
+[root@localhost .ssh]# ssh-copy-id -i id_rsa.pub clouder@172.28.101.23

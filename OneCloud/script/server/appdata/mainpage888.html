@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Admin Console Page</title>
+	<style type=text/css>
+		.border {
+			border-top: 3px solid  #c0c0c0;
+			border-left: 3px solid  #c0c0c0;
+			border-right: 3px solid  #c0c0c0;
+			border-bottom: 1px solid  #c0c0c0;
+		}
+		.two {
+			margin-left: 40px;
+		}
+		.three {
+			margin-left: 80px;
+			display: none;
+		}
+		.button {
+			width: 250px;
+			height: 30px;
+			border-radius:4px;
+			margin-left: 10px;
+			cursor: pointer;
+		}
+		.bottom {
+			margin-bottom: 10px;
+		}
+		.main {
+			margin-top: 5px;
+			font-weight: bold;
+			font-size: 20px;
+		}
+		.subsection {
+			font-style: italic;
+			background:  #c0c0c0;
+			width: 200px;
+			height: 20px;
+			padding: 10px;
+			cursor: pointer;
+			border-radius:4px;
+		}
+	</style>
+	<script type="text/javascript">
+		function Toggle(event) {
+			eventH =  event || window.event;
+			var t = eventH.target;
+			if (t == null) {
+				t = event.srcElement;
+			}
+			var ids = t.id;
+			var targetS = ids + "T";
+			t.style.background = "#c0c0c0";
+			var elem = document.getElementById(targetS);
+			if(elem.style.display != 'block')
+	          		elem.style.display = 'block';
+       			else
+          			elem.style.display = 'none';			
+		}
+
+		function ChangeColor(event) {
+			eventH =  event || window.event;
+                        var t = eventH.target;
+                        if (t == null) {
+                                t = event.srcElement;
+                        }
+			t.style.background = "#d9d9d9";
+		}
+	
+		function RestoreColor(event) {
+			eventH =  event || window.event;
+                        var t = eventH.target;
+                        if (t == null) {
+                                t = event.srcElement;
+                        }
+                        t.style.background = "#c0c0c0";
+		}
+	</script>	
+</head>
+<body>
+	<div style="height: 35px">
+		<span style="float:left; font-size:25px; font-weight:bold; margin-left: 500px">Administrator Console</span>
+		<input type="button" style="float:right; background-color:red; width:100px; height:30px; border-radius: 4px; cursor: pointer" onclick="window.location.href='/cgi-bin/logout.sh'" value="Logout">		
+	</div>
+	<div class="border">
+		<p class="main">User Management</p>
+		<div>
+			<p id="adminuser" class="two subsection" onclick="Toggle(event)" onmouseover="ChangeColor(event)" onmouseleave="RestoreColor(event)">Administrator User</p>
+			<div id="adminuserT" class="three">
+				<input class="button" type="button" onclick="window.open('/cgi-bin/modifyAdminUserPassword.sh')" value="Modify Administrator Password">
+			</div>
+		</div>
+		<div class="bottom">
+			<p id="buuser" class="two subsection" onclick="Toggle(event)" onmouseover="ChangeColor(event)" onmouseleave="RestoreColor(event)">Buisness User</p>
+			<div id="buuserT" class="three">
+                                <input class="button" type="button" onclick="window.open('/cgi-bin/addBusiUser.sh')" value="Add Buisness User">
+				<input class="button" type="button" onclick="window.open('/cgi-bin/showBusiUserPassword.sh')" value="Show Buisness User">
+			</div>
+		</div>
+	</div>
+
+	<div class="border">
+                <p class="main">Configuration</p>
+                <div>
+                        <p id="serverconfig" class="two subsection" onclick="Toggle(event)" onmouseover="ChangeColor(event)" onmouseleave="RestoreColor(event)">Server Configuration</p>
+                        <div id="serverconfigT" class="three">
+                                <input class="button" type="button" onclick="window.open('/cgi-bin/modifyServerInfo.sh')" value="Modify Server Configuration">
+				<input class="button" type="button" onclick="window.open('/cgi-bin/showServerInfo.sh')" value="Show Server Configuration">
+                        </div>
+                </div>
+                <div class="bottom">
+                        <p id="hardwareconfig" class="two subsection" onclick="Toggle(event)" onmouseover="ChangeColor(event)" onmouseleave="RestoreColor(event)">Hardware Configuration</p>
+                        <div id="hardwareconfigT" class="three">
+                                <input class="button" type="button" onclick="window.open('/cgi-bin/modifyHardwareInfo.sh')" value="Modify Hardware Configuration">
+                                <input class="button" type="button" onclick="window.open('/cgi-bin/showHardwareInfo.sh')" value="Show Hardware Configuration">
+                                <input class="button" type="button" onclick="var ret = window.confirm('are you sure to restore?'); if(ret) {window.open('/cgi-bin/restoreHardwareInfo.sh')} else { return }" value="Restore Initial Configuration">
+                        </div>
+                </div>
+        </div>
+
+	<div class="border">
+                <p class="main">Running Status Check</p>
+                <div class="bottom">
+                        <p id="cabinet" class="two subsection" onclick="Toggle(event)" onmouseover="ChangeColor(event)" onmouseleave="RestoreColor(event)">Cabinet</p>
+                        <div id="cabinetT" class="three">
+                                <input class="button" type="button" onclick="window.open('/cgi-bin/showCabinetStatus.sh')" value="Cabinet Running Status">
+				<input class="button" type="button" onclick="window.open('/cgi-bin/showServerStatus.sh')" value="Server Running Status">
+                        </div>
+                </div>
+        </div>
+
+	<div class="border" style="border-bottom: 3px solid  #c0c0c0;">
+                <p class="main">Log Management</p>
+                <div class="bottom">
+                        <p id="systemlog" class="two subsection" onclick="Toggle(event)" onmouseover="ChangeColor(event)" onmouseleave="RestoreColor(event)">System Logging</p>
+                        <div id="systemlogT" class="three">
+                                <input class="button" type="button" onclick="window.open('/cgi-bin/getSystemLog.sh')" value="Get System Log">
+                        </div>
+                </div>
+        </div>
+</body>
+</html>

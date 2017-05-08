@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Modify Business User Successful</title>
+	<script type="text/javascript">
+		function closewin() {
+			self.opener=null;
+			self.close();
+		}
+		function clock() {
+			i=i-1;
+			document.getElementById("content").innerHTML="this window will be closed in <span style='color: red; font-weight: bold'>" + i + "</span> seconds";
+			if(i>0)setTimeout("clock();",1000);
+			else closewin();
+		}
+		var i=3;
+
+		window.onload = clock;
+	</script>
+</head>
+<body>
+	<h1 style="margin-top:100px" align="center">Modify Business User <span style="color: red">Successful</span></h1>	
+	<p align="center" id='content'></p>
+</body>
+</html>

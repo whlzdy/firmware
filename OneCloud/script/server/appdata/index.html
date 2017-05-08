@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Admin Login</title>
+	<script type="text/javascript">
+		function checkSubmit() {
+			var username = login.username.value;
+			var password = login.password.value;
+		
+			if(username.length == 0 || password.length == 0){
+				alert("username or password is empty!")
+				return false;
+			}
+
+	//		if(/.*[\u4e00-\u9fa5]+.*$/.test(username)){
+	//			alert("do not input chinese in username field!")
+	//			return false;
+	//		}
+
+			if(! /^[0-9a-zA-Z]*$/.test(username) || ! /^[0-9a-zA-Z]*$/.test(password) ){
+				alert("username and password only include digits[0-9] and characters[a-zA-Z]!")
+				return false;
+			}
+			return true;			
+		}	
+	</script>
+</head>
+<body>
+	<div style="margin-top:100px" align="center">
+		<img src="/static/img/logo.jpg" />
+	</div>	
+
+	<br />
+
+	<div align="center">
+	<form name="login" action="/cgi-bin/login.sh" method="GET" onsubmit="return checkSubmit()">
+		<span style="font-weight:bold">username</span> <input type='text' name='username'>
+		<br /><br />
+		<span style="font-weight:bold">password</span> <input type='password' name='password'>
+		<br /><br />
+		<input type="submit"  style="border-radius:4px; height:25px; width:80px" value="Submit">
+	</form>
+	</div>
+</body>
+</html>

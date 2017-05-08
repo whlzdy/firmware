@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Add Business User</title>
+	<script type="text/javascript">
+		function checkSubmit() {
+			var username = login.username.value;
+			var password = login.password.value;
+			var passwordconf = login.passwordconf.value;
+			
+			if(username.length == 0 || password.length == 0 || passwordconf.length ==0){
+				alert("please input all fields!")
+				return false;
+			}
+
+			if(! /^[0-9a-zA-Z]*$/.test(username) || ! /^[0-9a-zA-Z]*$/.test(password) || ! /^[0-9a-zA-Z]*$/.test(passwordconf)){
+                                alert("username and password only include digits[0-9] and characters[a-zA-Z]!")
+                                return false;
+                        }
+
+
+			if( password != passwordconf ){
+				alert("password field and pass confirm field is different!")
+				return false;
+			}
+		
+	
+			if (username.length < 6 || username.length >15) {
+                                alert("username length should between 6 and 15!")
+                                return false;
+                        }
+
+			if (password.length < 6 || password.length >15) {
+                                alert("password length should between 6 and 15!")
+                                return false;
+                        }
+				
+			return true;			
+		}	
+	</script>
+</head>
+<body>
+	<h1 style="margin-top:100px" align="center">Add business User</h1>
+	<div align="center">
+	<form style="margin-top: 50px" name="login" action="/cgi-bin/addbusinessuser.sh" method="GET" onsubmit="return checkSubmit()">
+		<span style="text-align:left; font-weight:bold; display:inline-block; width:200px;">username</span> <input type='text' name='username'>
+		<br /><br />
+		<span style="text-align:left; font-weight:bold; display:inline-block; width:200px;">password</span> <input type='password' name='password'>
+		<br /><br />
+		<span style="text-align:left; font-weight:bold; display:inline-block; width:200px;">password confirm</span> <input type='password' name='passwordconf'>
+                <br /><br />
+		<input type="submit"  style="border-radius:4px; height:25px; width:80px" value="Submit">
+	</form>
+	</div>
+</body>
+</html>

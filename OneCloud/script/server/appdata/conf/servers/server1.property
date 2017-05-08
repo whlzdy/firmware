@@ -1,0 +1,5 @@
+ip=10.10.10.200
+mask=255.0.0.0
+gateway=10.10.10.254
+mac=3a:a4:de:66:90:BB
+catagory=primary

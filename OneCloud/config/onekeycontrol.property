@@ -1,0 +1,17 @@
+# iscsi ip address
+iscsiip1="172.28.101.43"
+#iscsiip2="192.168.153.11"
+
+# ipmi username and password
+user="root"
+password="engine"
+
+# system vm
+systemvm1ip="172.28.101.22"
+systemvm2ip="172.28.101.23"
+
+# application related information
+appip="172.28.101.22"
+statuscheckerscript="/home/clouder/vs/program/powercube/check_status.sh"
+stopscript="/home/clouder/vs/program/powercube/shutdown_platform.sh"
+startscript="/home/clouder/vs/program/commander/apps/mango/dep/start-platform.sh"
