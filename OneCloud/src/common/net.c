@@ -114,7 +114,7 @@ int net_write_package(int sockfd, unsigned char* buffer, int data_len) {
 	int retry = 3;
 
 	while (total_byte < data_len && retry > 0) {
-		n_send = write(sockfd, buffer + total_byte, data_len - n_send);
+		n_send = write(sockfd, buffer + total_byte, data_len - total_byte);
 		if (n_send == 0) {
 			fprintf(stderr, "Error: Maybe the client has closed. socket=[%d]\n", sockfd);
 			result = 0;
