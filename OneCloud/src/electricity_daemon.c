@@ -592,7 +592,8 @@ int init_serial(char* device) {
 	options.c_iflag |= IGNPAR; 				//无奇偶检验位
 	options.c_oflag = 0; 					//输出模式
 	options.c_lflag = 0; 					//不激活终端模式
-	cfsetospeed(&options, B9600); 		//设置波特率
+	cfsetospeed(&options, B2400); 		//设置波特率
+	//cfsetospeed(&options, B9600); 		//设置波特率
 	//cfsetospeed(&options, B115200); 		//设置波特率
 
 	//设置新属性，TCSANOW：所有改变立即生效
@@ -886,11 +887,11 @@ int dlt645_send(DLT645_FRAME* in_frame, DLT645_FRAME** out_frame) {
 			if (recv_bytes > 0) {
 				total_bytes += recv_bytes;
 				// check the receive data
-				for (tmpcount = 0; tmpcount < total_bytes; tmpcount++) {
-					char tmp;
-					tmp = buf_recv[tmpcount];
-					printf("%02X ", tmp);
-				}
+//				for (tmpcount = 0; tmpcount < total_bytes; tmpcount++) {
+//					char tmp;
+//					tmp = buf_recv[tmpcount];
+//					printf("%02X ", tmp);
+//				}
 				result = dlt645_check_command((unsigned char*) buf_recv, total_bytes,
 						&start_offset);
 				log_debug_print(g_debug_verbose, "check command (len=%d) return %d", total_bytes,

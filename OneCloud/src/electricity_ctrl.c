@@ -113,7 +113,8 @@ int init_serial(char* device) {
 	options.c_iflag |= IGNPAR; 				//无奇偶检验位
 	options.c_oflag = 0; 					//输出模式
 	options.c_lflag = 0; 					//不激活终端模式
-	cfsetospeed(&options, B9600); 		//设置波特率
+	cfsetospeed(&options, B2400); 		//设置波特率
+	//cfsetospeed(&options, B9600); 		//设置波特率
 	//cfsetospeed(&options, B115200); 		//设置波特率
 
 	//设置新属性，TCSANOW：所有改变立即生效
