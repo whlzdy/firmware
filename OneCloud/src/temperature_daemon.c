@@ -23,6 +23,7 @@
 #include "common/net.h"
 #include "util/script_helper.h"
 #include "util/log_helper.h"
+#include "util/date_helper.h"
 
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -577,14 +578,17 @@ void timer_event_watchdog_heartbeat() {
 	if (req_heart_beat != NULL)
 		free(req_heart_beat);
 
+	char time_temp_buf[32];
+	helper_get_current_time_str(time_temp_buf, 32, NULL);
+
 	// Communication with server
 	result = net_business_communicate((uint8_t*) OC_LOCAL_IP, g_config->watchdog_port,
 			OC_REQ_HEART_BEAT, busi_server_buf, server_buf_len, &resp_pkg_server);
 	//OC_CMD_HEART_BEAT_RESP* resp_heart_beat = (OC_CMD_HEART_BEAT_RESP*) resp_pkg_server->data;
 	if(result == OC_SUCCESS)
-		log_debug_print(g_debug_verbose, "Send watchdog heart beat success");
+		log_debug_print(g_debug_verbose, "[%s] Send watchdog heart beat success", time_temp_buf);
 	else
-		log_debug_print(g_debug_verbose, "Send watchdog heart beat failure");
+		log_debug_print(g_debug_verbose, "[%s] Send watchdog heart beat failure", time_temp_buf);
 
 	if(busi_server_buf != NULL)
 		free(busi_server_buf);

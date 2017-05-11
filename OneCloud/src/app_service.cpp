@@ -28,6 +28,7 @@
 #include "util/script_helper.h"
 #include "util/http_helper.h"
 #include "util/log_helper.h"
+#include "util/date_helper.h"
 
 #include "app.h"
 
@@ -573,7 +574,7 @@ static void* thread_web_connection_handle(void * param) {
 			if (app_center_ws == NULL)
 				retry--;
 			else {
-				retry = 10;
+				retry = 5;
 				log_info_print(g_debug_verbose, "Connect to %s success.",
 						g_config->app_center_ws_url);
 			}
@@ -601,7 +602,7 @@ static void* thread_web_connection_handle(void * param) {
 		}
 		if(retry <= 0) {
 			sleep(5);
-			retry = 10;
+			retry = 5;
 		}
 	}
 
@@ -674,8 +675,8 @@ int main(int argc, char **argv) {
 		log_error_print(g_debug_verbose, "APP thread create error!");
 		exit(EXIT_FAILURE);
 	}
-	//Just for test
-	//update_app_event(APP_EVENT_CALL_STARTUP);
+	pthread_detach(g_app_thread_id);
+
 	update_app_event(APP_EVENT_SETUP_WEB_CONN);
 
 	memset((void*) (&g_app_operation), 0, sizeof(OC_APP_OPERATION));
@@ -718,6 +719,7 @@ int main(int argc, char **argv) {
 		log_error_print(g_debug_verbose, "Timer thread create error!");
 		exit(EXIT_FAILURE);
 	}
+	pthread_detach(g_timer_thread_id);
 
 	///////////////////////////////////////////////////////////
 	// Main service loop
@@ -1541,14 +1543,17 @@ void timer_event_watchdog_heartbeat() {
 	if (req_heart_beat != NULL)
 		free(req_heart_beat);
 
+	char time_temp_buf[32];
+	helper_get_current_time_str(time_temp_buf, 32, NULL);
+
 	// Communication with server
 	result = net_business_communicate((uint8_t*) OC_LOCAL_IP, OC_WATCHDOG_DEFAULT_PORT,
 			OC_REQ_HEART_BEAT, busi_server_buf, server_buf_len, &resp_pkg_server);
 	//OC_CMD_HEART_BEAT_RESP* resp_heart_beat = (OC_CMD_HEART_BEAT_RESP*) resp_pkg_server->data;
 	if(result == OC_SUCCESS)
-		log_debug_print(g_debug_verbose, "Send watchdog heart beat success");
+		log_debug_print(g_debug_verbose, "[%s] Send watchdog heart beat success", time_temp_buf);
 	else
-		log_debug_print(g_debug_verbose, "Send watchdog heart beat failure");
+		log_debug_print(g_debug_verbose, "[%s] Send watchdog heart beat failure", time_temp_buf);
 
 	if(busi_server_buf != NULL)
 		free(busi_server_buf);
