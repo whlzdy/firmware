@@ -302,6 +302,7 @@ int main(int argc, char **argv) {
 		log_error_print(g_debug_verbose, "Timer thread create error!");
 		exit(EXIT_FAILURE);
 	}
+	pthread_detach(g_timer_thread_id);
 
 	///////////////////////////////////////////////////////////
 	// Main service loop

@@ -233,6 +233,8 @@ int main(int argc, char **argv) {
 		log_error_print(g_debug_verbose, "gpio routine pthread_create error!");
 		return EXIT_FAILURE;
 	}
+	pthread_detach(thread_id_gpio);
+
 	log_debug_print(g_debug_verbose, "gpio send thread!");
 	pthread_t thread_id_send;
 	if (pthread_create(&thread_id_send, NULL, thread_gpio_send_handle,
@@ -240,6 +242,8 @@ int main(int argc, char **argv) {
 		log_error_print(g_debug_verbose, "gpio send pthread_create error!");
 		return EXIT_FAILURE;
 	}
+	pthread_detach(thread_id_send);
+
 	log_debug_print(g_debug_verbose, "gpio query thread!");
 	pthread_t thread_id_query;
 	if (pthread_create(&thread_id_query, NULL, thread_gpio_query_handle,
@@ -247,6 +251,8 @@ int main(int argc, char **argv) {
 		log_error_print(g_debug_verbose, "gpio query pthread_create error!");
 		return EXIT_FAILURE;
 	}
+	pthread_detach(thread_id_query);
+
 
 	///////////////////////////////////////////////////////////
 	// Timer service thread
@@ -256,6 +262,7 @@ int main(int argc, char **argv) {
 		log_error_print(g_debug_verbose, "Timer thread create error!");
 		exit(EXIT_FAILURE);
 	}
+	pthread_detach(g_timer_thread_id);
 
 	///////////////////////////////////////////////////////////
 	// Main service loop

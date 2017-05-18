@@ -382,6 +382,7 @@ int main(int argc, char **argv) {
 		log_error_print(g_debug_verbose, " com temperature pthread_create error!");
 		return EXIT_FAILURE;
 	}
+	pthread_detach(thread_id_routine);
 
 	///////////////////////////////////////////////////////////
 	// Timer service thread
@@ -391,6 +392,7 @@ int main(int argc, char **argv) {
 		log_error_print(g_debug_verbose, "Timer thread create error!");
 		exit(EXIT_FAILURE);
 	}
+	pthread_detach(g_timer_thread_id);
 
 	///////////////////////////////////////////////////////////
 	// Main service loop
