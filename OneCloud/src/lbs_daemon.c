@@ -534,12 +534,16 @@ static void* thread_com_lbs_handle(void*) {
 		}
 		strcpy(device_name, token0);
 		log_debug_print(g_debug_verbose, "lbs device_name %s", device_name);
-		while (1) {
+		while(1){
 			if(com_lbs_data_test(device_name)!=0){
 				log_error_print(g_debug_verbose, "lbs data error [%s]", device_name);
 				break;
 			}
 			sleep(600);
+			if(com_lbs_control_test(device_name)!=0){
+				log_debug_print(g_debug_verbose, "lbs control device error [%s]", device_name);
+					break;
+			}
 		}
 	}
 
