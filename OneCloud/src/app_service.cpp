@@ -1825,6 +1825,16 @@ void web_make_cabinet_status_parameters(OC_CMD_QUERY_CABINET_RESP* query_cabinet
 	sprintf(temp, "decibel=%.2f:", query_cabinet->voice_db);
 	strcat(custome, temp);
 
+	// longitude
+	memset((void*) temp, 0, sizeof(temp));
+	sprintf(temp, "longitude=%.8f:", query_cabinet->longitude);
+	strcat(custome, temp);
+
+	// latitude
+	memset((void*) temp, 0, sizeof(temp));
+	sprintf(temp, "latitude=%.8f:", query_cabinet->latitude);
+	strcat(custome, temp);
+
 	// uptime
 	memset((void*) temp, 0, sizeof(temp));
 	time_t now_time = time(NULL);

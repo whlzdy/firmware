@@ -64,6 +64,8 @@ int collect_cabinet_temperature(float* out_temperature);
 int collect_cabinet_electricity(float* out_kwh, float* out_voltage, float* out_current,
 		float* out_watt);
 int collect_cabinet_voice_db(float* out_voice_db);
+int collect_cabinet_gps_loc(float* out_longitude, float* out_latitude, float* out_altitude);
+int collect_cabinet_gpsusb_loc(float* out_longitude, float* out_latitude, float* out_altitude);
 int call_cabinet_power_on();
 int call_cabinet_power_off();
 
@@ -175,6 +177,29 @@ int load_config(char *config) {
 	get_parameter_int(SECTION_TEMPERATURE, "listen_port", &temp_int,
 	OC_TEMPERATURE_PORT);
 	g_config->temperature_port = temp_int;
+
+	temp_int = 0;
+	get_parameter_int(SECTION_VOICE, "listen_port", &temp_int,
+	OC_VOICE_PORT);
+	g_config->voice_port = temp_int;
+
+	temp_int = 0;
+	get_parameter_int(SECTION_GPS, "enable", &temp_int, OC_FALSE);
+	if (temp_int == OC_TRUE) {
+		temp_int = 0;
+		get_parameter_int(SECTION_GPS, "listen_port", &temp_int,
+		OC_GPS_PORT);
+		g_config->gps_port = temp_int;
+	}
+
+	temp_int = 0;
+	get_parameter_int(SECTION_GPSUSB, "enable", &temp_int, OC_FALSE);
+	if (temp_int == OC_TRUE) {
+		temp_int = 0;
+		get_parameter_int(SECTION_GPSUSB, "listen_port", &temp_int,
+		OC_GPSUSB_PORT);
+		g_config->gpsusb_port = temp_int;
+	}
 
 	memset(temp_value, 0, sizeof(temp_value));
 	get_parameter_str(SECTION_MAIN, "cabinet_status_file", temp_value,
@@ -597,13 +622,22 @@ int main_busi_query_cabinet_status(unsigned char* req_buf, int req_len, unsigned
 	float temperature = 43.4F;
 	float watt = 0.01F;
 	float voice_db = 40.5F;
+	float longitude = 0.0F;
+	float latitude = 0.0F;
+	float altitude = 0.0F;
 	time_t start_time = g_cabinet_start_time;
 	collect_cabinet_temperature(&temperature);
 	collect_cabinet_electricity(&kwh, &voltage, &current, &watt);
 	collect_cabinet_voice_db(&voice_db);
 
+	if(g_config->gps_port > 0){
+		collect_cabinet_gps_loc(&longitude, &latitude, &altitude);
+	}else if (g_config->gpsusb_port > 0){
+		collect_cabinet_gpsusb_loc(&longitude, &latitude, &altitude);
+	}
+
 	result = generate_cmd_query_cabinet_resp(&resp, status, kwh, voltage, current, temperature,
-			watt, voice_db, start_time);
+			watt, voice_db, longitude, latitude, start_time);
 	if (resp == NULL)
 		result = OC_FAILURE;
 
@@ -1452,7 +1486,152 @@ int collect_cabinet_electricity(float* out_kwh, float* out_voltage, float* out_c
 int collect_cabinet_voice_db(float* out_voice_db) {
 	int result = OC_SUCCESS;
 
-	*out_voice_db = 40.0F;
+	// Construct the command
+	uint8_t* busi_buf = NULL;
+	int busi_buf_len = 0;
+
+	OC_CMD_QUERY_VOICE_REQ * req_query_voice = NULL;
+	result = generate_cmd_query_voice_req(&req_query_voice, 0);
+	result = translate_cmd2buf_query_voice_req(req_query_voice, &busi_buf,
+			&busi_buf_len);
+	if (req_query_voice != NULL)
+		free(req_query_voice);
+
+	OC_NET_PACKAGE* resp_pkg = NULL;
+	OC_CMD_QUERY_VOICE_RESP* resp_query_voice = NULL;
+	result = net_business_communicate((uint8_t*) OC_LOCAL_IP, g_config->voice_port,
+	OC_REQ_QUERY_VOICE, busi_buf, busi_buf_len, &resp_pkg);
+	free(busi_buf);
+
+	if (result == OC_SUCCESS && resp_pkg != NULL) {
+		log_debug_print(g_debug_verbose,
+				"Query voice, net_business_communicate return OC_SUCCESS");
+
+		// notify the invoker
+		resp_query_voice = (OC_CMD_QUERY_VOICE_RESP*) resp_pkg->data;
+		*out_voice_db = resp_query_voice->db;
+	} else {
+		log_debug_print(g_debug_verbose,
+				"Query voice, net_business_communicate return OC_FAILURE");
+		*out_voice_db = 0.0F;
+	}
+
+	if (resp_pkg != NULL)
+		free_network_package(resp_pkg);
+
+	return result;
+}
+
+/**
+ * Collect cabinet gps location.
+ */
+int collect_cabinet_gps_loc(float* out_longitude, float* out_latitude, float* out_altitude) {
+	int result = OC_SUCCESS;
+
+	// Construct the command
+	uint8_t* busi_buf = NULL;
+	int busi_buf_len = 0;
+
+	OC_CMD_QUERY_GPS_REQ * req_query_gps = NULL;
+	result = generate_cmd_query_gps_req(&req_query_gps, 0);
+	result = translate_cmd2buf_query_gps_req(req_query_gps, &busi_buf,
+			&busi_buf_len);
+	if (req_query_gps != NULL)
+		free(req_query_gps);
+
+	OC_NET_PACKAGE* resp_pkg = NULL;
+	OC_CMD_QUERY_GPS_RESP* resp_query_gps = NULL;
+	result = net_business_communicate((uint8_t*) OC_LOCAL_IP, g_config->gps_port,
+	OC_REQ_QUERY_GPS, busi_buf, busi_buf_len, &resp_pkg);
+	free(busi_buf);
+
+	if (result == OC_SUCCESS && resp_pkg != NULL) {
+		log_debug_print(g_debug_verbose,
+				"Query gps, net_business_communicate return OC_SUCCESS");
+
+		// notify the invoker
+		resp_query_gps = (OC_CMD_QUERY_GPS_RESP*) resp_pkg->data;
+
+		if(resp_query_gps->ew == 0){
+			*out_longitude = resp_query_gps->longitude;
+		}else{
+			*out_longitude = -resp_query_gps->longitude;
+		}
+
+		if(resp_query_gps->ns == 0){
+			*out_latitude = resp_query_gps->latitude;
+		}else{
+			*out_latitude = -resp_query_gps->latitude;
+		}
+
+		*out_altitude = resp_query_gps->altitude;
+	} else {
+		log_debug_print(g_debug_verbose,
+				"Query gps, net_business_communicate return OC_FAILURE");
+		*out_longitude = 0.0F;
+		*out_latitude = 0.0F;
+		*out_altitude = 0.0F;
+	}
+
+	if (resp_pkg != NULL)
+		free_network_package(resp_pkg);
+
+	return result;
+}
+
+/**
+ * Collect cabinet gpsusb location.
+ */
+int collect_cabinet_gpsusb_loc(float* out_longitude, float* out_latitude, float* out_altitude) {
+	int result = OC_SUCCESS;
+
+	// Construct the command
+	uint8_t* busi_buf = NULL;
+	int busi_buf_len = 0;
+
+	OC_CMD_QUERY_GPSUSB_REQ * req_query_gpsusb = NULL;
+	result = generate_cmd_query_gpsusb_req(&req_query_gpsusb, 0);
+	result = translate_cmd2buf_query_gpsusb_req(req_query_gpsusb, &busi_buf,
+			&busi_buf_len);
+	if (req_query_gpsusb != NULL)
+		free(req_query_gpsusb);
+
+	OC_NET_PACKAGE* resp_pkg = NULL;
+	OC_CMD_QUERY_GPSUSB_RESP* resp_query_gpsusb = NULL;
+	result = net_business_communicate((uint8_t*) OC_LOCAL_IP, g_config->gpsusb_port,
+	OC_REQ_QUERY_GPSUSB, busi_buf, busi_buf_len, &resp_pkg);
+	free(busi_buf);
+
+	if (result == OC_SUCCESS && resp_pkg != NULL) {
+		log_debug_print(g_debug_verbose,
+				"Query gpsusb, net_business_communicate return OC_SUCCESS");
+
+		// notify the invoker
+		resp_query_gpsusb = (OC_CMD_QUERY_GPSUSB_RESP*) resp_pkg->data;
+
+		if(resp_query_gpsusb->ew == 0){
+			*out_longitude = resp_query_gpsusb->longitude;
+		}else{
+			*out_longitude = -resp_query_gpsusb->longitude;
+		}
+
+		if(resp_query_gpsusb->ns == 0){
+			*out_latitude = resp_query_gpsusb->latitude;
+		}else{
+			*out_latitude = -resp_query_gpsusb->latitude;
+		}
+
+		*out_altitude = resp_query_gpsusb->altitude;
+	} else {
+		log_debug_print(g_debug_verbose,
+				"Query gpsusb, net_business_communicate return OC_FAILURE");
+		*out_longitude = 0.0F;
+		*out_latitude = 0.0F;
+		*out_altitude = 0.0F;
+	}
+
+	if (resp_pkg != NULL)
+		free_network_package(resp_pkg);
 
 	return result;
 }
