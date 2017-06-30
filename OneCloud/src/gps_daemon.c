@@ -202,7 +202,7 @@ int main(int argc, char **argv) {
 	if (argc > 1) {
 		if (strcmp("help", argv[1]) == 0 || strcmp("-h", argv[1]) == 0
 				|| strcmp("--help", argv[1]) == 0) {
-			fprintf(stderr, "usage: gpio_daemon [configuration file]\n");
+			fprintf(stderr, "usage: gps_daemon [configuration file]\n");
 			exit(1);
 		}
 		strcpy(g_config_file, argv[1]);
