@@ -64,5 +64,33 @@ then
 fi
 echo "stop temperature daemon...PID="${PROC_ID} >> ${LOG_FILE}
 
+PROC_ID=`ps -ef|grep "bin/voice_daemon"|grep -v "grep"|awk '{print $2}'`
+if [ "${PROC_ID}" != "" ]
+then
+    kill -9 ${PROC_ID}
+fi
+echo "stop voice daemon...PID="${PROC_ID} >> ${LOG_FILE}
+
+PROC_ID=`ps -ef|grep "bin/gps_daemon"|grep -v "grep"|awk '{print $2}'`
+if [ "${PROC_ID}" != "" ]
+then
+    kill -9 ${PROC_ID}
+fi
+echo "stop gps daemon...PID="${PROC_ID} >> ${LOG_FILE}
+
+PROC_ID=`ps -ef|grep "bin/gpsusb_daemon"|grep -v "grep"|awk '{print $2}'`
+if [ "${PROC_ID}" != "" ]
+then
+    kill -9 ${PROC_ID}
+fi
+echo "stop gpsusb daemon...PID="${PROC_ID} >> ${LOG_FILE}
+
+PROC_ID=`ps -ef|grep "bin/lbs_daemon"|grep -v "grep"|awk '{print $2}'`
+if [ "${PROC_ID}" != "" ]
+then
+    kill -9 ${PROC_ID}
+fi
+echo "stop lbs daemon...PID="${PROC_ID} >> ${LOG_FILE}
+
 
 

@@ -264,7 +264,7 @@ int generate_cmd_query_cabinet_req(OC_CMD_QUERY_CABINET_REQ ** out_req, uint32_t
  */
 int generate_cmd_query_cabinet_resp(OC_CMD_QUERY_CABINET_RESP ** out_resp, uint32_t status,
 		float kwh, float voltage, float current, float temperature, float watt, float voice_db,
-		time_t start_time) {
+		float longitude, float latitude, time_t start_time) {
 	int result = OC_SUCCESS;
 
 	OC_CMD_QUERY_CABINET_RESP* resp = (OC_CMD_QUERY_CABINET_RESP*) malloc(
@@ -280,6 +280,8 @@ int generate_cmd_query_cabinet_resp(OC_CMD_QUERY_CABINET_RESP ** out_resp, uint3
 	resp->temperature = temperature;
 	resp->watt = watt;
 	resp->voice_db = voice_db;
+	resp->longitude = longitude;
+	resp->latitude = latitude;
 	resp->start_time = start_time;
 
 	*out_resp = resp;
@@ -1725,3 +1727,459 @@ int translate_buf2cmd_app_control_resp(uint8_t* in_buf, OC_CMD_CTRL_APP_RESP ** 
 
 	return result;
 }
+
+///////////////////////////////////////////////////////////
+// Command function: Voice query
+///////////////////////////////////////////////////////////
+
+/**
+ * Generate request command: Voice query.
+ */
+int generate_cmd_query_voice_req(OC_CMD_QUERY_VOICE_REQ ** out_req, uint32_t flag) {
+	int result = OC_SUCCESS;
+
+	OC_CMD_QUERY_VOICE_REQ* req = (OC_CMD_QUERY_VOICE_REQ*) malloc(
+			sizeof(OC_CMD_QUERY_VOICE_REQ));
+	req->command = OC_REQ_QUERY_VOICE;
+	req->flag = flag;
+
+	*out_req = req;
+
+	return result;
+}
+
+/**
+ * Generate response command: Voice query.
+ */
+int generate_cmd_query_voice_resp(OC_CMD_QUERY_VOICE_RESP ** out_resp,
+		uint32_t exec_result, uint32_t error_no, float db) {
+	int result = OC_SUCCESS;
+
+	OC_CMD_QUERY_VOICE_RESP* resp = (OC_CMD_QUERY_VOICE_RESP*) malloc(
+			sizeof(OC_CMD_QUERY_VOICE_RESP));
+	memset((void*) resp, 0, sizeof(OC_CMD_QUERY_VOICE_RESP));
+
+	resp->command = OC_REQ_QUERY_VOICE | OC_RESPONSE_BIT;
+	resp->result = exec_result;
+	resp->timestamp = time(NULL);
+	resp->error_no = error_no;
+	resp->db = db;
+
+	*out_resp = resp;
+
+	return result;
+}
+
+/**
+ * Translate request command to buffer: Voice query.
+ */
+int translate_cmd2buf_query_voice_req(OC_CMD_QUERY_VOICE_REQ * req, uint8_t** out_buf,
+		int* out_buf_len) {
+	int result = OC_SUCCESS;
+
+	int buf_len = sizeof(OC_CMD_QUERY_VOICE_REQ);
+	uint8_t* buffer = (uint8_t*) malloc(buf_len);
+
+	memcpy((void*) buffer, (void*) req, buf_len);
+
+	*out_buf = buffer;
+	*out_buf_len = buf_len;
+
+	return result;
+}
+
+/**
+ * Translate response command to buffer: Voice query.
+ */
+int translate_cmd2buf_query_voice_resp(OC_CMD_QUERY_VOICE_RESP* resp, uint8_t** out_buf,
+		int* out_buf_len) {
+	int result = OC_SUCCESS;
+
+	int buf_len = sizeof(OC_CMD_QUERY_VOICE_RESP);
+	uint8_t* buffer = (uint8_t*) malloc(buf_len);
+
+	memcpy((void*) buffer, (void*) resp, buf_len);
+
+	*out_buf = buffer;
+	*out_buf_len = buf_len;
+
+	return result;
+}
+
+/**
+ * Translate buffer to request command: Voice query.
+ */
+int translate_buf2cmd_query_voice_req(uint8_t* in_buf, OC_CMD_QUERY_VOICE_REQ** out_req) {
+	int result = OC_SUCCESS;
+
+	int buf_len = sizeof(OC_CMD_QUERY_VOICE_REQ);
+	OC_CMD_QUERY_VOICE_REQ* req = (OC_CMD_QUERY_VOICE_REQ*) malloc(buf_len);
+
+	memcpy((void*) req, (void*) in_buf, buf_len);
+
+	*out_req = req;
+
+	return result;
+}
+
+/**
+ * Translate buffer to response command: Voice query.
+ */
+int translate_buf2cmd_query_voice_resp(uint8_t* in_buf,
+		OC_CMD_QUERY_VOICE_RESP ** out_resp) {
+	int result = OC_SUCCESS;
+
+	int buf_len = sizeof(OC_CMD_QUERY_VOICE_RESP);
+	OC_CMD_QUERY_VOICE_RESP* resp = (OC_CMD_QUERY_VOICE_RESP*) malloc(buf_len);
+
+	memcpy((void*) resp, (void*) in_buf, buf_len);
+
+	*out_resp = resp;
+
+	return result;
+}
+
+///////////////////////////////////////////////////////////
+// Command function: Gps query
+///////////////////////////////////////////////////////////
+
+/**
+ * Generate request command: Gps query.
+ */
+int generate_cmd_query_gps_req(OC_CMD_QUERY_GPS_REQ ** out_req, uint32_t flag) {
+	int result = OC_SUCCESS;
+
+	OC_CMD_QUERY_GPS_REQ* req = (OC_CMD_QUERY_GPS_REQ*) malloc(
+			sizeof(OC_CMD_QUERY_GPS_REQ));
+	req->command = OC_REQ_QUERY_GPS;
+	req->flag = flag;
+
+	*out_req = req;
+
+	return result;
+}
+
+/**
+ * Generate response command: Gps query.
+ */
+int generate_cmd_query_gps_resp(OC_CMD_QUERY_GPS_RESP ** out_resp,
+		uint32_t exec_result, uint32_t error_no, uint32_t ew, float longitude, uint32_t ns, float latitude, float altitude) {
+	int result = OC_SUCCESS;
+
+	OC_CMD_QUERY_GPS_RESP* resp = (OC_CMD_QUERY_GPS_RESP*) malloc(
+			sizeof(OC_CMD_QUERY_GPS_RESP));
+	memset((void*) resp, 0, sizeof(OC_CMD_QUERY_GPS_RESP));
+
+	resp->command = OC_REQ_QUERY_GPS | OC_RESPONSE_BIT;
+	resp->result = exec_result;
+	resp->timestamp = time(NULL);
+	resp->error_no = error_no;
+	resp->ew = ew;
+	resp->longitude = longitude;
+	resp->ns = ns;
+	resp->latitude = latitude;
+	resp->altitude = altitude;
+
+	*out_resp = resp;
+
+	return result;
+}
+
+/**
+ * Translate request command to buffer: Gps query.
+ */
+int translate_cmd2buf_query_gps_req(OC_CMD_QUERY_GPS_REQ * req, uint8_t** out_buf,
+		int* out_buf_len) {
+	int result = OC_SUCCESS;
+
+	int buf_len = sizeof(OC_CMD_QUERY_GPS_REQ);
+	uint8_t* buffer = (uint8_t*) malloc(buf_len);
+
+	memcpy((void*) buffer, (void*) req, buf_len);
+
+	*out_buf = buffer;
+	*out_buf_len = buf_len;
+
+	return result;
+}
+
+/**
+ * Translate response command to buffer: Gps query.
+ */
+int translate_cmd2buf_query_gps_resp(OC_CMD_QUERY_GPS_RESP* resp, uint8_t** out_buf,
+		int* out_buf_len) {
+	int result = OC_SUCCESS;
+
+	int buf_len = sizeof(OC_CMD_QUERY_GPS_RESP);
+	uint8_t* buffer = (uint8_t*) malloc(buf_len);
+
+	memcpy((void*) buffer, (void*) resp, buf_len);
+
+	*out_buf = buffer;
+	*out_buf_len = buf_len;
+
+	return result;
+}
+
+/**
+ * Translate buffer to request command: Gps query.
+ */
+int translate_buf2cmd_query_gps_req(uint8_t* in_buf, OC_CMD_QUERY_GPS_REQ** out_req) {
+	int result = OC_SUCCESS;
+
+	int buf_len = sizeof(OC_CMD_QUERY_GPS_REQ);
+	OC_CMD_QUERY_GPS_REQ* req = (OC_CMD_QUERY_GPS_REQ*) malloc(buf_len);
+
+	memcpy((void*) req, (void*) in_buf, buf_len);
+
+	*out_req = req;
+
+	return result;
+}
+
+/**
+ * Translate buffer to response command: Gps query.
+ */
+int translate_buf2cmd_query_gps_resp(uint8_t* in_buf,
+		OC_CMD_QUERY_GPS_RESP ** out_resp) {
+	int result = OC_SUCCESS;
+
+	int buf_len = sizeof(OC_CMD_QUERY_GPS_RESP);
+	OC_CMD_QUERY_GPS_RESP* resp = (OC_CMD_QUERY_GPS_RESP*) malloc(buf_len);
+
+	memcpy((void*) resp, (void*) in_buf, buf_len);
+
+	*out_resp = resp;
+
+	return result;
+}
+
+///////////////////////////////////////////////////////////
+// Command function: Gpsusb query
+///////////////////////////////////////////////////////////
+
+/**
+ * Generate request command: Gpsusb query.
+ */
+int generate_cmd_query_gpsusb_req(OC_CMD_QUERY_GPSUSB_REQ ** out_req, uint32_t flag) {
+	int result = OC_SUCCESS;
+
+	OC_CMD_QUERY_GPSUSB_REQ* req = (OC_CMD_QUERY_GPSUSB_REQ*) malloc(
+			sizeof(OC_CMD_QUERY_GPSUSB_REQ));
+	req->command = OC_REQ_QUERY_GPSUSB;
+	req->flag = flag;
+
+	*out_req = req;
+
+	return result;
+}
+
+/**
+ * Generate response command: Gpsusb query.
+ */
+int generate_cmd_query_gpsusb_resp(OC_CMD_QUERY_GPSUSB_RESP ** out_resp,
+		uint32_t exec_result, uint32_t error_no, uint32_t ew, float longitude, uint32_t ns, float latitude, float altitude) {
+	int result = OC_SUCCESS;
+
+	OC_CMD_QUERY_GPSUSB_RESP* resp = (OC_CMD_QUERY_GPSUSB_RESP*) malloc(
+			sizeof(OC_CMD_QUERY_GPSUSB_RESP));
+	memset((void*) resp, 0, sizeof(OC_CMD_QUERY_GPSUSB_RESP));
+
+	resp->command = OC_REQ_QUERY_GPSUSB | OC_RESPONSE_BIT;
+	resp->result = exec_result;
+	resp->timestamp = time(NULL);
+	resp->error_no = error_no;
+	resp->ew = ew;
+	resp->longitude = longitude;
+	resp->ns = ns;
+	resp->latitude = latitude;
+	resp->altitude = altitude;
+
+	*out_resp = resp;
+
+	return result;
+}
+
+/**
+ * Translate request command to buffer: Gpsusb query.
+ */
+int translate_cmd2buf_query_gpsusb_req(OC_CMD_QUERY_GPSUSB_REQ * req, uint8_t** out_buf,
+		int* out_buf_len) {
+	int result = OC_SUCCESS;
+
+	int buf_len = sizeof(OC_CMD_QUERY_GPSUSB_REQ);
+	uint8_t* buffer = (uint8_t*) malloc(buf_len);
+
+	memcpy((void*) buffer, (void*) req, buf_len);
+
+	*out_buf = buffer;
+	*out_buf_len = buf_len;
+
+	return result;
+}
+
+/**
+ * Translate response command to buffer: Gpsusb query.
+ */
+int translate_cmd2buf_query_gpsusb_resp(OC_CMD_QUERY_GPSUSB_RESP* resp, uint8_t** out_buf,
+		int* out_buf_len) {
+	int result = OC_SUCCESS;
+
+	int buf_len = sizeof(OC_CMD_QUERY_GPSUSB_RESP);
+	uint8_t* buffer = (uint8_t*) malloc(buf_len);
+
+	memcpy((void*) buffer, (void*) resp, buf_len);
+
+	*out_buf = buffer;
+	*out_buf_len = buf_len;
+
+	return result;
+}
+
+/**
+ * Translate buffer to request command: Gpsusb query.
+ */
+int translate_buf2cmd_query_gpsusb_req(uint8_t* in_buf, OC_CMD_QUERY_GPSUSB_REQ** out_req) {
+	int result = OC_SUCCESS;
+
+	int buf_len = sizeof(OC_CMD_QUERY_GPSUSB_REQ);
+	OC_CMD_QUERY_GPSUSB_REQ* req = (OC_CMD_QUERY_GPSUSB_REQ*) malloc(buf_len);
+
+	memcpy((void*) req, (void*) in_buf, buf_len);
+
+	*out_req = req;
+
+	return result;
+}
+
+/**
+ * Translate buffer to response command: Gpsusb query.
+ */
+int translate_buf2cmd_query_gpsusb_resp(uint8_t* in_buf,
+		OC_CMD_QUERY_GPSUSB_RESP ** out_resp) {
+	int result = OC_SUCCESS;
+
+	int buf_len = sizeof(OC_CMD_QUERY_GPSUSB_RESP);
+	OC_CMD_QUERY_GPSUSB_RESP* resp = (OC_CMD_QUERY_GPSUSB_RESP*) malloc(buf_len);
+
+	memcpy((void*) resp, (void*) in_buf, buf_len);
+
+	*out_resp = resp;
+
+	return result;
+}
+
+///////////////////////////////////////////////////////////
+// Command function: Lbs query
+///////////////////////////////////////////////////////////
+
+/**
+ * Generate request command: Lbs query.
+ */
+int generate_cmd_query_lbs_req(OC_CMD_QUERY_LBS_REQ ** out_req, uint32_t flag) {
+	int result = OC_SUCCESS;
+
+	OC_CMD_QUERY_LBS_REQ* req = (OC_CMD_QUERY_LBS_REQ*) malloc(
+			sizeof(OC_CMD_QUERY_LBS_REQ));
+	req->command = OC_REQ_QUERY_LBS;
+	req->flag = flag;
+
+	*out_req = req;
+
+	return result;
+}
+
+/**
+ * Generate response command: Lbs query.
+ */
+int generate_cmd_query_lbs_resp(OC_CMD_QUERY_LBS_RESP ** out_resp,
+		uint32_t exec_result, uint32_t error_no, uint32_t lac, uint32_t ci, uint32_t reserved_1) {
+	int result = OC_SUCCESS;
+
+	OC_CMD_QUERY_LBS_RESP* resp = (OC_CMD_QUERY_LBS_RESP*) malloc(
+			sizeof(OC_CMD_QUERY_LBS_RESP));
+	memset((void*) resp, 0, sizeof(OC_CMD_QUERY_LBS_RESP));
+
+	resp->command = OC_REQ_QUERY_LBS | OC_RESPONSE_BIT;
+	resp->result = exec_result;
+	resp->timestamp = time(NULL);
+	resp->error_no = error_no;
+	resp->lac = lac;
+	resp->ci = ci;
+	resp->reserved_1 = reserved_1;
+
+	*out_resp = resp;
+
+	return result;
+}
+
+/**
+ * Translate request command to buffer: Lbs query.
+ */
+int translate_cmd2buf_query_lbs_req(OC_CMD_QUERY_LBS_REQ * req, uint8_t** out_buf,
+		int* out_buf_len) {
+	int result = OC_SUCCESS;
+
+	int buf_len = sizeof(OC_CMD_QUERY_LBS_REQ);
+	uint8_t* buffer = (uint8_t*) malloc(buf_len);
+
+	memcpy((void*) buffer, (void*) req, buf_len);
+
+	*out_buf = buffer;
+	*out_buf_len = buf_len;
+
+	return result;
+}
+
+/**
+ * Translate response command to buffer: Lbs query.
+ */
+int translate_cmd2buf_query_lbs_resp(OC_CMD_QUERY_LBS_RESP* resp, uint8_t** out_buf,
+		int* out_buf_len) {
+	int result = OC_SUCCESS;
+
+	int buf_len = sizeof(OC_CMD_QUERY_LBS_RESP);
+	uint8_t* buffer = (uint8_t*) malloc(buf_len);
+
+	memcpy((void*) buffer, (void*) resp, buf_len);
+
+	*out_buf = buffer;
+	*out_buf_len = buf_len;
+
+	return result;
+}
+
+/**
+ * Translate buffer to request command: Lbs query.
+ */
+int translate_buf2cmd_query_lbs_req(uint8_t* in_buf, OC_CMD_QUERY_LBS_REQ** out_req) {
+	int result = OC_SUCCESS;
+
+	int buf_len = sizeof(OC_CMD_QUERY_LBS_REQ);
+	OC_CMD_QUERY_LBS_REQ* req = (OC_CMD_QUERY_LBS_REQ*) malloc(buf_len);
+
+	memcpy((void*) req, (void*) in_buf, buf_len);
+
+	*out_req = req;
+
+	return result;
+}
+
+/**
+ * Translate buffer to response command: Lbs query.
+ */
+int translate_buf2cmd_query_lbs_resp(uint8_t* in_buf,
+		OC_CMD_QUERY_LBS_RESP ** out_resp) {
+	int result = OC_SUCCESS;
+
+	int buf_len = sizeof(OC_CMD_QUERY_LBS_RESP);
+	OC_CMD_QUERY_LBS_RESP* resp = (OC_CMD_QUERY_LBS_RESP*) malloc(buf_len);
+
+	memcpy((void*) resp, (void*) in_buf, buf_len);
+
+	*out_resp = resp;
+
+	return result;
+}
+
+

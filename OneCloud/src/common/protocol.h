@@ -58,6 +58,10 @@ typedef struct oc_net_package{
 #define OC_REQ_QUERY_TEMPERATURE		0x00000010
 #define OC_REQ_CTRL_ELECTRICITY		    0x00000011
 #define OC_REQ_QUERY_ELECTRICITY		0x00000012
+#define OC_REQ_QUERY_VOICE				0x00000013
+#define OC_REQ_QUERY_GPS				0x00000014
+#define OC_REQ_QUERY_GPSUSB				0x00000015
+#define OC_REQ_QUERY_LBS				0x00000016
 
 
 /**
@@ -94,6 +98,8 @@ typedef struct oc_cmd_query_cabinet_resp{
 	float	 temperature;
 	float	 watt;
 	float	 voice_db;
+	float    longitude;
+	float    latitude;
 	int	 reserved_1;
 	float	 reserved_2;
 } OC_CMD_QUERY_CABINET_RESP;
@@ -506,6 +512,139 @@ typedef struct oc_cmd_ctrl_app_resp{
 } OC_CMD_CTRL_APP_RESP;
 
 
+/**
+ *  Command definition : Voice query
+ *  request format:
+ *    ---------------------
+ *    | command |  flag   |
+ *    ---------------------
+ *    |4 Byte   | 4 Byte  |
+ *
+ *  response format:
+ *    -----------------------------------------------------
+ *    | command | result | timestamp | error no | db      |
+ *    -----------------------------------------------------
+ *    |4 Byte   | 4 Byte |  8 Byte   | 4 Byte   | 4 Byte  |
+ */
+
+/* Request : Voice query*/
+typedef struct oc_cmd_query_voice_req{
+	uint32_t command;			//command
+	uint32_t flag;			    //reserved
+} OC_CMD_QUERY_VOICE_REQ;
+
+/* Response : Voice query*/
+typedef struct oc_cmd_query_voice_resp{
+	uint32_t command;			//command
+	uint32_t result;			//0: completed normal, 1: catch error.
+	time_t timestamp;			//current time
+	uint32_t error_no;			//error code
+	float db;			//db
+} OC_CMD_QUERY_VOICE_RESP;
+
+
+/**
+ *  Command definition : Gps query
+ *  request format:
+ *    ---------------------
+ *    | command |  flag   |
+ *    ---------------------
+ *    |4 Byte   | 4 Byte  |
+ *
+ *  response format:
+ *    -------------------------------------------------------------------------------------------------------
+ *    | command | result | timestamp | error no | ew      |longitude| ns      | latitude|altitude |
+ *    -------------------------------------------------------------------------------------------------------
+ *    |4 Byte   | 4 Byte |  8 Byte   | 4 Byte   | 4 Byte  | 4 Byte  | 4 Byte  | 4 Byte  | 4 Byte  |
+ */
+
+/* Request : Gps query*/
+typedef struct oc_cmd_query_gps_req{
+	uint32_t command;			//command
+	uint32_t flag;			    //reserved
+} OC_CMD_QUERY_GPS_REQ;
+
+/* Response : Gps query*/
+typedef struct oc_cmd_query_gps_resp{
+	uint32_t command;			//command
+	uint32_t result;			//0: completed normal, 1: catch error.
+	time_t timestamp;			//current time
+	uint32_t error_no;			//error code
+    uint32_t ew;                //0: east, 1: west
+	float longitude;			//longitude
+    uint32_t ns;                //0: north, 1: south
+	float latitude;				//latitude
+	float altitude;				//altitude
+} OC_CMD_QUERY_GPS_RESP;
+
+
+/**
+ *  Command definition : Gpsusb query
+ *  request format:
+ *    ---------------------
+ *    | command |  flag   |
+ *    ---------------------
+ *    |4 Byte   | 4 Byte  |
+ *
+ *  response format:
+ *    -------------------------------------------------------------------------------------------------------
+ *    | command | result | timestamp | error no | ew      |longitude| ns      | latitude|altitude |
+ *    -------------------------------------------------------------------------------------------------------
+ *    |4 Byte   | 4 Byte |  8 Byte   | 4 Byte   | 4 Byte  | 4 Byte  | 4 Byte  | 4 Byte  | 4 Byte  |
+ */
+
+/* Request : Gpsusb query*/
+typedef struct oc_cmd_query_gpsusb_req{
+	uint32_t command;			//command
+	uint32_t flag;			    //reserved
+} OC_CMD_QUERY_GPSUSB_REQ;
+
+/* Response : Gpsusb query*/
+typedef struct oc_cmd_query_gpsusb_resp{
+	uint32_t command;			//command
+	uint32_t result;			//0: completed normal, 1: catch error.
+	time_t timestamp;			//current time
+	uint32_t error_no;			//error code
+    uint32_t ew;                //0: east, 1: west
+	float longitude;			//longitude
+    uint32_t ns;                //0: north, 1: south
+	float latitude;				//latitude
+	float altitude;				//altitude
+} OC_CMD_QUERY_GPSUSB_RESP;
+
+
+/**
+ *  Command definition : Lbs query
+ *  request format:
+ *    ---------------------
+ *    | command |  flag   |
+ *    ---------------------
+ *    |4 Byte   | 4 Byte  |
+ *
+ *  response format:
+ *    --------------------------------------------------------------------------
+ *    | command | result | timestamp | error no | lac     | ci      |reserved_1|
+ *    --------------------------------------------------------------------------
+ *    |4 Byte   | 4 Byte |  8 Byte   | 4 Byte   | 4 Byte  | 4 Byte  | 4 Byte   |
+ */
+
+/* Request : Lbs query*/
+typedef struct oc_cmd_query_lbs_req{
+	uint32_t command;			//command
+	uint32_t flag;			    //reserved
+} OC_CMD_QUERY_LBS_REQ;
+
+/* Response : Lbs query*/
+typedef struct oc_cmd_query_lbs_resp{
+	uint32_t command;			//command
+	uint32_t result;			//0: completed normal, 1: catch error.
+	time_t timestamp;			//current time
+	uint32_t error_no;			//error code
+    uint32_t lac;               //lac
+    uint32_t ci;                //ci
+	int		 reserved_1;
+} OC_CMD_QUERY_LBS_RESP;
+
 
 
 ////////////////////////////////////////////////////////////
@@ -563,7 +702,7 @@ int generate_cmd_query_cabinet_req(OC_CMD_QUERY_CABINET_REQ ** out_req,	uint32_t
  */
 int generate_cmd_query_cabinet_resp(OC_CMD_QUERY_CABINET_RESP ** out_resp,
 		uint32_t status, float kwh, float voltage, float current,
-		float temperature, float watt, float voice_db, time_t start_time);
+		float temperature, float watt, float voice_db, float longitude, float latitude, time_t start_time);
 
 /**
  * Translate request command to buffer: Cabinet query.
@@ -1017,6 +1156,153 @@ int translate_buf2cmd_app_control_req(uint8_t* in_buf, OC_CMD_CTRL_APP_REQ** out
  * Translate buffer to response command: APP control.
  */
 int translate_buf2cmd_app_control_resp(uint8_t* in_buf, OC_CMD_CTRL_APP_RESP ** out_resp);
+
+
+
+
+///////////////////////////////////////////////////////////
+// Command function: Voice query
+///////////////////////////////////////////////////////////
+
+/**
+ * Generate request command: Voice query.
+ */
+int generate_cmd_query_voice_req(OC_CMD_QUERY_VOICE_REQ ** out_req,	uint32_t flag);
+
+/**
+ * Generate response command: Voice query.
+ */
+int generate_cmd_query_voice_resp(OC_CMD_QUERY_VOICE_RESP ** out_resp, uint32_t exec_result, uint32_t error_no, float db);
+
+/**
+ * Translate request command to buffer: Voice query.
+ */
+int translate_cmd2buf_query_voice_req(OC_CMD_QUERY_VOICE_REQ * req,	uint8_t** out_buf, int* out_buf_len);
+
+/**
+ * Translate response command to buffer: Voice query.
+ */
+int translate_cmd2buf_query_voice_resp(OC_CMD_QUERY_VOICE_RESP* resp, uint8_t** out_buf, int* out_buf_len);
+
+/**
+ * Translate buffer to request command: Voice query.
+ */
+int translate_buf2cmd_query_voice_req(uint8_t* in_buf, OC_CMD_QUERY_VOICE_REQ** out_req);
+
+/**
+ * Translate buffer to response command: Voice query.
+ */
+int translate_buf2cmd_query_voice_resp(uint8_t* in_buf, OC_CMD_QUERY_VOICE_RESP ** out_resp);
+
+
+
+
+///////////////////////////////////////////////////////////
+// Command function: Gps query
+///////////////////////////////////////////////////////////
+
+/**
+ * Generate request command: Gps query.
+ */
+int generate_cmd_query_gps_req(OC_CMD_QUERY_GPS_REQ ** out_req,	uint32_t flag);
+
+/**
+ * Generate response command: Gps query.
+ */
+int generate_cmd_query_gps_resp(OC_CMD_QUERY_GPS_RESP ** out_resp, uint32_t exec_result, uint32_t error_no, uint32_t ew, float longitude, uint32_t ns, float latitude, float altitude);
+
+/**
+ * Translate request command to buffer: Gps query.
+ */
+int translate_cmd2buf_query_gps_req(OC_CMD_QUERY_GPS_REQ * req,	uint8_t** out_buf, int* out_buf_len);
+
+/**
+ * Translate response command to buffer: Gps query.
+ */
+int translate_cmd2buf_query_gps_resp(OC_CMD_QUERY_GPS_RESP* resp, uint8_t** out_buf, int* out_buf_len);
+
+/**
+ * Translate buffer to request command: Gps query.
+ */
+int translate_buf2cmd_query_gps_req(uint8_t* in_buf, OC_CMD_QUERY_GPS_REQ** out_req);
+
+/**
+ * Translate buffer to response command: Gps query.
+ */
+int translate_buf2cmd_query_gps_resp(uint8_t* in_buf, OC_CMD_QUERY_GPS_RESP ** out_resp);
+
+
+
+///////////////////////////////////////////////////////////
+// Command function: Gpsusb query
+///////////////////////////////////////////////////////////
+
+/**
+ * Generate request command: Gpsusb query.
+ */
+int generate_cmd_query_gpsusb_req(OC_CMD_QUERY_GPSUSB_REQ ** out_req,	uint32_t flag);
+
+/**
+ * Generate response command: Gpsusb query.
+ */
+int generate_cmd_query_gpsusb_resp(OC_CMD_QUERY_GPSUSB_RESP ** out_resp, uint32_t exec_result, uint32_t error_no, uint32_t ew, float longitude, uint32_t ns, float latitude, float altitude);
+
+/**
+ * Translate request command to buffer: Gpsusb query.
+ */
+int translate_cmd2buf_query_gpsusb_req(OC_CMD_QUERY_GPSUSB_REQ * req,	uint8_t** out_buf, int* out_buf_len);
+
+/**
+ * Translate response command to buffer: Gpsusb query.
+ */
+int translate_cmd2buf_query_gpsusb_resp(OC_CMD_QUERY_GPSUSB_RESP* resp, uint8_t** out_buf, int* out_buf_len);
+
+/**
+ * Translate buffer to request command: Gpsusb query.
+ */
+int translate_buf2cmd_query_gpsusb_req(uint8_t* in_buf, OC_CMD_QUERY_GPSUSB_REQ** out_req);
+
+/**
+ * Translate buffer to response command: Gpsusb query.
+ */
+int translate_buf2cmd_query_gpsusb_resp(uint8_t* in_buf, OC_CMD_QUERY_GPSUSB_RESP ** out_resp);
+
+
+
+///////////////////////////////////////////////////////////
+// Command function: Lbs query
+///////////////////////////////////////////////////////////
+
+/**
+ * Generate request command: Lbs query.
+ */
+int generate_cmd_query_lbs_req(OC_CMD_QUERY_LBS_REQ ** out_req,	uint32_t flag);
+
+/**
+ * Generate response command: Lbs query.
+ */
+int generate_cmd_query_lbs_resp(OC_CMD_QUERY_LBS_RESP ** out_resp, uint32_t exec_result, uint32_t error_no, uint32_t lac, uint32_t ci, uint32_t reserved_1);
+
+/**
+ * Translate request command to buffer: Lbs query.
+ */
+int translate_cmd2buf_query_lbs_req(OC_CMD_QUERY_LBS_REQ * req,	uint8_t** out_buf, int* out_buf_len);
+
+/**
+ * Translate response command to buffer: Lbs query.
+ */
+int translate_cmd2buf_query_lbs_resp(OC_CMD_QUERY_LBS_RESP* resp, uint8_t** out_buf, int* out_buf_len);
+
+/**
+ * Translate buffer to request command: Lbs query.
+ */
+int translate_buf2cmd_query_lbs_req(uint8_t* in_buf, OC_CMD_QUERY_LBS_REQ** out_req);
+
+/**
+ * Translate buffer to response command: Lbs query.
+ */
+int translate_buf2cmd_query_lbs_resp(uint8_t* in_buf, OC_CMD_QUERY_LBS_RESP ** out_resp);
+
 
 
 #endif /* PROTOCOL_H_ */

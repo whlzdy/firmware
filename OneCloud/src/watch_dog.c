@@ -59,6 +59,10 @@ int g_soft_gpio_counter = OC_WATCH_DOG_SOFT_RESET_SEC;
 int g_soft_script_counter = OC_WATCH_DOG_SOFT_RESET_SEC;
 int g_soft_app_counter = OC_WATCH_DOG_SOFT_RESET_SEC;
 int g_soft_temperature_counter = OC_WATCH_DOG_SOFT_RESET_SEC;
+int g_soft_voice_counter = OC_WATCH_DOG_SOFT_RESET_SEC;
+int g_soft_gps_counter = OC_WATCH_DOG_SOFT_RESET_SEC;
+int g_soft_gpsusb_counter = OC_WATCH_DOG_SOFT_RESET_SEC;
+int g_soft_lbs_counter = OC_WATCH_DOG_SOFT_RESET_SEC;
 int g_soft_com0_counter = -1;
 int g_soft_com1_counter = -1;
 int g_soft_com2_counter = -1; //electricity daemon
@@ -158,7 +162,7 @@ int load_config(char *config) {
 
 	temp_int = 0;
 	get_parameter_int(SECTION_SCRIPT, "listen_port", &temp_int,
-	OC_SIM_DEFAULT_PORT);
+	OC_SCRIPT_DEFAULT_PORT);
 	g_config->script_port = temp_int;
 
 	temp_int = 0;
@@ -168,8 +172,40 @@ int load_config(char *config) {
 
 	temp_int = 0;
 	get_parameter_int(SECTION_TEMPERATURE, "listen_port", &temp_int,
-	OC_SIM_DEFAULT_PORT);
+	OC_TEMPERATURE_PORT);
 	g_config->temperature_port = temp_int;
+
+	temp_int = 0;
+	get_parameter_int(SECTION_VOICE, "listen_port", &temp_int,
+	OC_VOICE_PORT);
+	g_config->voice_port = temp_int;
+
+	temp_int = 0;
+	get_parameter_int(SECTION_GPS, "enable", &temp_int, OC_FALSE);
+	if (temp_int == OC_TRUE) {
+		temp_int = 0;
+		get_parameter_int(SECTION_GPS, "listen_port", &temp_int,
+		OC_GPS_PORT);
+		g_config->gps_port = temp_int;
+	}
+
+	temp_int = 0;
+	get_parameter_int(SECTION_GPSUSB, "enable", &temp_int, OC_FALSE);
+	if (temp_int == OC_TRUE) {
+		temp_int = 0;
+		get_parameter_int(SECTION_GPSUSB, "listen_port", &temp_int,
+		OC_GPSUSB_PORT);
+		g_config->gpsusb_port = temp_int;
+	}
+
+	temp_int = 0;
+	get_parameter_int(SECTION_LBS, "enable", &temp_int, OC_FALSE);
+	if (temp_int == OC_TRUE) {
+		temp_int = 0;
+		get_parameter_int(SECTION_LBS, "listen_port", &temp_int,
+		OC_LBS_PORT);
+		g_config->lbs_port = temp_int;
+	}
 
 	temp_int = 0;
 	get_parameter_int(SECTION_COM0, "enable", &temp_int, OC_FALSE);
@@ -593,6 +629,38 @@ int main_busi_heart_beat(unsigned char* req_buf, int req_len, unsigned char* res
 																g_soft_temperature_counter;
 		break;
 
+	case device_voice:
+		log_debug_print(g_debug_verbose, "[%s]Receive heart beat of voice_daemon", time_temp_buf);
+		g_soft_voice_counter =
+				ctrl_heart_beat_req->status == OC_HEALTH_OK ?
+				OC_WATCH_DOG_SOFT_RESET_SEC :
+																g_soft_voice_counter;
+		break;
+
+	case device_gps:
+		log_debug_print(g_debug_verbose, "[%s]Receive heart beat of gps_daemon", time_temp_buf);
+		g_soft_gps_counter =
+				ctrl_heart_beat_req->status == OC_HEALTH_OK ?
+				OC_WATCH_DOG_SOFT_RESET_SEC :
+																g_soft_gps_counter;
+		break;
+
+	case device_gpsusb:
+		log_debug_print(g_debug_verbose, "[%s]Receive heart beat of gpsusb_daemon", time_temp_buf);
+		g_soft_gpsusb_counter =
+				ctrl_heart_beat_req->status == OC_HEALTH_OK ?
+				OC_WATCH_DOG_SOFT_RESET_SEC :
+																g_soft_gpsusb_counter;
+		break;
+
+	case device_lbs:
+		log_debug_print(g_debug_verbose, "[%s]Receive heart beat of lbs_daemon", time_temp_buf);
+		g_soft_lbs_counter =
+				ctrl_heart_beat_req->status == OC_HEALTH_OK ?
+				OC_WATCH_DOG_SOFT_RESET_SEC :
+																g_soft_lbs_counter;
+		break;
+
 	default:
 		break;
 	}
@@ -651,6 +719,14 @@ void timer_event_process() {
 		g_soft_app_counter--;
 	if (g_soft_temperature_counter > 0)
 		g_soft_temperature_counter--;
+	if (g_soft_voice_counter > 0)
+		g_soft_voice_counter--;
+	if (g_soft_gps_counter > 0)
+		g_soft_gps_counter--;
+	if (g_soft_gpsusb_counter > 0)
+		g_soft_gpsusb_counter--;
+	if (g_soft_lbs_counter > 0)
+		g_soft_lbs_counter--;
 	if (g_soft_com0_counter > 0)
 		g_soft_com0_counter--;
 	if (g_soft_com1_counter > 0)
@@ -725,13 +801,49 @@ void timer_event_process() {
 			g_soft_app_counter = OC_WATCH_DOG_SOFT_RESET_SEC;
 		}
 		if (g_config->temperature_port > 0 && g_soft_temperature_counter == 0) {
-			//Reset the APP service daemon
+			//Reset the Temperature daemon
 			helper_get_current_time_str(time_temp_buf, 32, NULL);
 			log_warn_print(g_debug_verbose, "[%s] now restart the temperature_daemon", time_temp_buf);
 
 			result = script_shell_exec((unsigned char*) WG_SHELL_RESTART_TEMPERATURE_DAEMON,
 					script_result);
 			g_soft_temperature_counter = OC_WATCH_DOG_SOFT_RESET_SEC;
+		}
+		if (g_config->voice_port > 0 && g_soft_voice_counter == 0) {
+			//Reset the Voice daemon
+			helper_get_current_time_str(time_temp_buf, 32, NULL);
+			log_warn_print(g_debug_verbose, "[%s] now restart the voice_daemon", time_temp_buf);
+
+			result = script_shell_exec((unsigned char*) WG_SHELL_RESTART_VOICE_DAEMON,
+					script_result);
+			g_soft_voice_counter = OC_WATCH_DOG_SOFT_RESET_SEC;
+		}
+		if (g_config->gps_port > 0 && g_soft_gps_counter == 0) {
+			//Reset the Voice daemon
+			helper_get_current_time_str(time_temp_buf, 32, NULL);
+			log_warn_print(g_debug_verbose, "[%s] now restart the gps_daemon", time_temp_buf);
+
+			result = script_shell_exec((unsigned char*) WG_SHELL_RESTART_GPS_DAEMON,
+					script_result);
+			g_soft_gps_counter = OC_WATCH_DOG_SOFT_RESET_SEC;
+		}
+		if (g_config->gpsusb_port > 0 && g_soft_gpsusb_counter == 0) {
+			//Reset the Voice daemon
+			helper_get_current_time_str(time_temp_buf, 32, NULL);
+			log_warn_print(g_debug_verbose, "[%s] now restart the gpsusb_daemon", time_temp_buf);
+
+			result = script_shell_exec((unsigned char*) WG_SHELL_RESTART_GPSUSB_DAEMON,
+					script_result);
+			g_soft_gpsusb_counter = OC_WATCH_DOG_SOFT_RESET_SEC;
+		}
+		if (g_config->lbs_port > 0 && g_soft_lbs_counter == 0) {
+			//Reset the Voice daemon
+			helper_get_current_time_str(time_temp_buf, 32, NULL);
+			log_warn_print(g_debug_verbose, "[%s] now restart the lbs_daemon", time_temp_buf);
+
+			result = script_shell_exec((unsigned char*) WG_SHELL_RESTART_LBS_DAEMON,
+					script_result);
+			g_soft_lbs_counter = OC_WATCH_DOG_SOFT_RESET_SEC;
 		}
 		if (g_config->com_config[0].listen_port > 0 && g_soft_com0_counter == 0) {
 			//Reset the COM0 daemon
@@ -790,7 +902,7 @@ void timer_event_process() {
 		// Hardware watch dog reset
 		if (g_soft_main_proc_counter > 0 && g_soft_sim_counter > 0 && g_soft_gpio_counter > 0
 				&& g_soft_script_counter > 0 && g_soft_app_counter > 0
-//				&& g_soft_temperature_counter > 0 && g_soft_com0_counter != 0
+//				&& g_soft_temperature_counter > 0 && g_soft_voice_counter > 0 && g_soft_gps_counter > 0 && g_soft_com0_counter != 0
 //				&& g_soft_com1_counter != 0 && g_soft_com2_counter != 0 && g_soft_com3_counter != 0
 //				&& g_soft_com4_counter != 0 && g_soft_com5_counter != 0
 				) {

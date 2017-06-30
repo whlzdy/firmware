@@ -36,12 +36,21 @@ char g_config_file[256];
 struct settings *g_config = NULL;
 
 void cmd_helper() {
-	fprintf(stderr, "usage: monitor_client type=<cabinet|server> [server_id=<string>]\n");
+	fprintf(stderr, "usage: monitor_client type=<cabinet|server|cg|qg|qt|qe|ce|qv|qgps|qgpsusb> [server_id=<string>] [event=<int>]\n");
 }
 
-#define QUERY_TYPE_CABINET	0
-#define QUERY_TYPE_SERVER	1
-#define QUERY_TYPE_NONE		99
+#define QUERY_TYPE_CABINET		0
+#define QUERY_TYPE_SERVER		1
+#define CTRL_TYPE_GPIO			2
+#define QUERY_TYPE_GPIO			3
+#define QUERY_TYPE_TEMPERATURE	4
+#define QUERY_TYPE_ELECTRICITY	5
+#define CTRL_TYPE_ELECTRICITY	6
+#define QUERY_TYPE_VOICE		7
+#define QUERY_TYPE_GPS			8
+#define QUERY_TYPE_GPSUSB		9
+#define QUERY_TYPE_LBS			10
+#define QUERY_TYPE_NONE			99
 
 /**
  * Cabinet monitor client
@@ -53,6 +62,7 @@ int main(int argc, char **argv) {
 	char* p = NULL;
 	int monitor_type = QUERY_TYPE_CABINET; //0: cabinet, 1:server, other: not support
 	uint8_t server_id[20];
+	uint32_t event = 0;
 
 	///////////////////////////////////////////////////////////
 	// Console parameter process
@@ -79,6 +89,38 @@ int main(int argc, char **argv) {
 					strcpy((char*) server_id, (const char*) param_value);
 				}
 			}
+		} else if (strcmp("cg", param_value) == 0) {
+			monitor_type = CTRL_TYPE_GPIO;
+			if (argc > 2) {
+				p = argv[2];
+				sscanf(p, "%[^=]=%[^=]", param_name, param_value);
+				if (strcmp("event", param_name) == 0) {
+					strcpy((char*) event, (const char*) param_value);
+				}
+			}
+		} else if (strcmp("qg", param_value) == 0) {
+			monitor_type = QUERY_TYPE_GPIO;
+		} else if (strcmp("qt", param_value) == 0) {
+			monitor_type = QUERY_TYPE_TEMPERATURE;
+		} else if (strcmp("qe", param_value) == 0) {
+			monitor_type = QUERY_TYPE_ELECTRICITY;
+		} else if (strcmp("ce", param_value) == 0) {
+			monitor_type = CTRL_TYPE_ELECTRICITY;
+			if (argc > 2) {
+				p = argv[2];
+				sscanf(p, "%[^=]=%[^=]", param_name, param_value);
+				if (strcmp("event", param_name) == 0) {
+					strcpy((char*) event, (const char*) param_value);
+				}
+			}
+		} else if (strcmp("qv", param_value) == 0) {
+			monitor_type = QUERY_TYPE_VOICE;
+		} else if (strcmp("qgps", param_value) == 0) {
+			monitor_type = QUERY_TYPE_GPS;
+		} else if (strcmp("qgpsusb", param_value) == 0) {
+			monitor_type = QUERY_TYPE_GPSUSB;
+		} else if (strcmp("qlbs", param_value) == 0) {
+			monitor_type = QUERY_TYPE_LBS;
 		} else {
 			monitor_type = QUERY_TYPE_NONE;
 			cmd_helper();
@@ -139,7 +181,197 @@ int main(int argc, char **argv) {
 		log_debug_print(g_debug_verbose, "server_num=%d ", query_server->server_num);
 		print_json_server_query(query_server);
 
-	}
+		} else if (monitor_type == CTRL_TYPE_GPIO) {
+
+			// Construct the request command
+			OC_CMD_CTRL_GPIO_REQ * req_cabinet = NULL;
+			result = generate_cmd_ctrl_gpio_req(&req_cabinet, event,0);
+			fprintf(stderr, "Info: event=%d \n", req_cabinet->event);
+			result = translate_cmd2buf_ctrl_gpio_req(req_cabinet, &busi_buf, &busi_buf_len);
+			if (req_cabinet != NULL)
+				free(req_cabinet);
+
+			// Communication with server
+			result = net_business_communicate((uint8_t*) "127.0.0.1", OC_GPIO_DEFAULT_PORT,
+					OC_REQ_CTRL_GPIO, busi_buf, busi_buf_len, &resp_pkg);
+
+			package_print_frame(resp_pkg);
+
+			OC_CMD_CTRL_GPIO_RESP* query_cabinet = (OC_CMD_CTRL_GPIO_RESP*) resp_pkg->data;
+			fprintf(stderr, "Info: result=%d \n", query_cabinet->result);
+
+		} else if (monitor_type == QUERY_TYPE_GPIO	) {
+
+			// Construct the request command
+			OC_CMD_QUERY_GPIO_REQ * req_server = NULL;
+			uint32_t type = 0;
+			if (strlen((const char*) server_id) > 0)
+				type = 1;
+			result = generate_cmd_query_gpio_req(&req_server, 0);
+			result = translate_cmd2buf_query_gpio_req(req_server, &busi_buf, &busi_buf_len);
+			if (req_server != NULL)
+				free(req_server);
+
+			// Communication with server
+			result = net_business_communicate((uint8_t*) "127.0.0.1", OC_GPIO_DEFAULT_PORT,
+					OC_REQ_QUERY_GPIO, busi_buf, busi_buf_len, &resp_pkg);
+
+			package_print_frame(resp_pkg);
+
+			OC_CMD_QUERY_GPIO_RESP* query_server = (OC_CMD_QUERY_GPIO_RESP*) resp_pkg->data;
+			fprintf(stderr, "Info:result=%d io_status=%d io_status=%X \n", query_server->result, query_server->io_status, query_server->io_status);
+
+		} else if (monitor_type == QUERY_TYPE_TEMPERATURE) {
+
+			// Construct the request command
+			OC_CMD_QUERY_TEMPERATURE_REQ * req_server = NULL;
+			uint32_t type = 0;
+			if (strlen((const char*) server_id) > 0)
+				type = 1;
+			result = generate_cmd_query_temperature_req(&req_server, 0);
+			result = translate_cmd2buf_query_temperature_req(req_server, &busi_buf, &busi_buf_len);
+			if (req_server != NULL)
+				free(req_server);
+
+			// Communication with server
+			result = net_business_communicate((uint8_t*) "127.0.0.1", OC_TEMPERATURE_PORT,
+					OC_REQ_QUERY_TEMPERATURE, busi_buf, busi_buf_len, &resp_pkg);
+
+			package_print_frame(resp_pkg);
+
+			OC_CMD_QUERY_TEMPERATURE_RESP* query_server = (OC_CMD_QUERY_TEMPERATURE_RESP*) resp_pkg->data;
+			fprintf(stderr, "Info:result=%d t1=%.2f t2=%.2f \n", query_server->result, query_server->t1, query_server->t2);
+
+		} else if (monitor_type == QUERY_TYPE_ELECTRICITY) {
+
+			// Construct the request command
+			OC_CMD_QUERY_ELECTRICITY_REQ * req_server = NULL;
+			uint32_t type = 0;
+			if (strlen((const char*) server_id) > 0)
+				type = 1;
+			result = generate_cmd_query_electricity_req(&req_server, 0);
+			result = translate_cmd2buf_query_electricity_req(req_server, &busi_buf, &busi_buf_len);
+			if (req_server != NULL)
+				free(req_server);
+
+			// Communication with server
+			result = net_business_communicate((uint8_t*) "127.0.0.1", 17012,
+					OC_REQ_QUERY_ELECTRICITY, busi_buf, busi_buf_len, &resp_pkg);
+
+			package_print_frame(resp_pkg);
+
+			OC_CMD_QUERY_ELECTRICITY_RESP* query_server = (OC_CMD_QUERY_ELECTRICITY_RESP*) resp_pkg->data;
+			fprintf(stderr, "Info:result=%d kwh=%.2f voltage=%.1f current=%.3f kw=%.4f \n", query_server->result, query_server->kwh, query_server->voltage, query_server->current, query_server->kw);
+
+		} else if (monitor_type == CTRL_TYPE_ELECTRICITY) {
+
+			// Construct the request command
+			OC_CMD_CTRL_ELECTRICITY_REQ * req_server = NULL;
+			uint32_t type = 0;
+			if (strlen((const char*) server_id) > 0)
+				type = 1;
+			result = generate_cmd_ctrl_electricity_req(&req_server, event,0);
+			result = translate_cmd2buf_ctrl_electricity_req(req_server, &busi_buf, &busi_buf_len);
+			if (req_server != NULL)
+				free(req_server);
+
+			// Communication with server
+			result = net_business_communicate((uint8_t*) "127.0.0.1", 17012,
+					OC_REQ_CTRL_ELECTRICITY, busi_buf, busi_buf_len, &resp_pkg);
+
+			package_print_frame(resp_pkg);
+
+			OC_CMD_CTRL_ELECTRICITY_RESP* query_server = (OC_CMD_CTRL_ELECTRICITY_RESP*) resp_pkg->data;
+			fprintf(stderr, "Info:result=%d  \n", query_server->result);
+
+		} else if (monitor_type == QUERY_TYPE_VOICE) {
+
+			// Construct the request command
+			OC_CMD_QUERY_VOICE_REQ * req_server = NULL;
+			uint32_t type = 0;
+			if (strlen((const char*) server_id) > 0)
+				type = 1;
+			result = generate_cmd_query_voice_req(&req_server, 0);
+			result = translate_cmd2buf_query_voice_req(req_server, &busi_buf, &busi_buf_len);
+			if (req_server != NULL)
+				free(req_server);
+
+			// Communication with server
+			result = net_business_communicate((uint8_t*) "127.0.0.1", OC_VOICE_PORT,
+					OC_REQ_QUERY_VOICE, busi_buf, busi_buf_len, &resp_pkg);
+
+			package_print_frame(resp_pkg);
+
+			OC_CMD_QUERY_VOICE_RESP* query_server = (OC_CMD_QUERY_VOICE_RESP*) resp_pkg->data;
+			fprintf(stderr, "Info:result=%d db=%.2f \n", query_server->result, query_server->db);
+
+		} else if (monitor_type == QUERY_TYPE_GPS) {
+
+			// Construct the request command
+			OC_CMD_QUERY_GPS_REQ * req_server = NULL;
+			uint32_t type = 0;
+			if (strlen((const char*) server_id) > 0)
+				type = 1;
+			result = generate_cmd_query_gps_req(&req_server, 0);
+			result = translate_cmd2buf_query_gps_req(req_server, &busi_buf, &busi_buf_len);
+			if (req_server != NULL)
+				free(req_server);
+
+			// Communication with server
+			result = net_business_communicate((uint8_t*) "127.0.0.1", OC_GPS_PORT,
+					OC_REQ_QUERY_GPS, busi_buf, busi_buf_len, &resp_pkg);
+
+			package_print_frame(resp_pkg);
+
+			OC_CMD_QUERY_GPS_RESP* query_server = (OC_CMD_QUERY_GPS_RESP*) resp_pkg->data;
+			fprintf(stderr, "Info:result=%d ew=%d longitude=%.2f ns=%d latitude=%.2f altitude=%.2f \n",
+					query_server->result, query_server->ew, query_server->longitude, query_server->ns, query_server->latitude, query_server->altitude);
+
+		} else if (monitor_type == QUERY_TYPE_GPSUSB) {
+
+			// Construct the request command
+			OC_CMD_QUERY_GPSUSB_REQ * req_server = NULL;
+			uint32_t type = 0;
+			if (strlen((const char*) server_id) > 0)
+				type = 1;
+			result = generate_cmd_query_gpsusb_req(&req_server, 0);
+			result = translate_cmd2buf_query_gpsusb_req(req_server, &busi_buf, &busi_buf_len);
+			if (req_server != NULL)
+				free(req_server);
+
+			// Communication with server
+			result = net_business_communicate((uint8_t*) "127.0.0.1", OC_GPSUSB_PORT,
+					OC_REQ_QUERY_GPSUSB, busi_buf, busi_buf_len, &resp_pkg);
+
+			package_print_frame(resp_pkg);
+
+			OC_CMD_QUERY_GPSUSB_RESP* query_server = (OC_CMD_QUERY_GPSUSB_RESP*) resp_pkg->data;
+			fprintf(stderr, "Info:result=%d ew=%d longitude=%.2f ns=%d latitude=%.2f altitude=%.2f \n",
+					query_server->result, query_server->ew, query_server->longitude, query_server->ns, query_server->latitude, query_server->altitude);
+
+		} else if (monitor_type == QUERY_TYPE_LBS) {
+
+			// Construct the request command
+			OC_CMD_QUERY_LBS_REQ * req_server = NULL;
+			uint32_t type = 0;
+			if (strlen((const char*) server_id) > 0)
+				type = 1;
+			result = generate_cmd_query_lbs_req(&req_server, 0);
+			result = translate_cmd2buf_query_lbs_req(req_server, &busi_buf, &busi_buf_len);
+			if (req_server != NULL)
+				free(req_server);
+
+			// Communication with server
+			result = net_business_communicate((uint8_t*) "127.0.0.1", OC_LBS_PORT,
+					OC_REQ_QUERY_LBS, busi_buf, busi_buf_len, &resp_pkg);
+
+			package_print_frame(resp_pkg);
+
+			OC_CMD_QUERY_LBS_RESP* query_server = (OC_CMD_QUERY_LBS_RESP*) resp_pkg->data;
+			fprintf(stderr, "Info:result=%d lac=%d ci=%d reserved_1=%d \n",
+					query_server->result, query_server->lac, query_server->ci, query_server->reserved_1);
+
+		}
 
 	free(busi_buf);
 	if (resp_pkg != NULL)

@@ -24,7 +24,11 @@ enum daemon_business_role {
 	role_script = 4,
 	role_uart_com = 5,
 	role_app_service = 6,
-	role_temperature = 7
+	role_temperature = 7,
+	role_voice = 8,
+	role_gps = 9,
+	role_gpsusb = 10,
+	role_lbs = 11
 };
 
 // Daemon business role
@@ -41,7 +45,11 @@ enum daemon_device_proc {
 	device_proc_uart_com3 = 10,
 	device_proc_uart_com4 = 11,
 	device_proc_uart_com5 = 12,
-	device_temperature = 13
+	device_temperature = 13,
+	device_voice = 14,
+	device_gps = 15,
+	device_gpsusb = 16,
+	device_lbs = 17
 };
 
 
@@ -62,6 +70,10 @@ struct settings {
 	int script_port;		// Script daemon listen port
 	int app_port;			// App service daemon listen port
 	int temperature_port;	// Temperature daemon listen port
+	int voice_port;	        // Voice daemon listen port
+	int gps_port;	        // Gps daemon listen port
+	int gpsusb_port;	    // Gpsusb daemon listen port
+	int lbs_port;	    // Lbs daemon listen port
 	int com_num;			// number of UART COM
 	UART_COM_CONFIG com_config[MAX_UART_COM_NUM];
 	char startup_ctrl_script[MAX_FILE_PATH_LEN];
@@ -93,7 +105,7 @@ struct settings {
 #define MAX_PARAM_NAME_LEN 32
 #define MAX_PARAM_VALUE_LEN 128
 #define MAX_SECTION_ITEM_NUM 16
-#define MAX_SECTION_NUM 16
+#define MAX_SECTION_NUM 20
 
 #define SECTION_MAIN		"main"
 #define SECTION_WATCHDOG	"watchdog"
@@ -108,6 +120,10 @@ struct settings {
 #define SECTION_COM4		"com4"
 #define SECTION_COM5		"com5"
 #define SECTION_TEMPERATURE	"temperature"
+#define SECTION_VOICE		"voice"
+#define SECTION_GPS			"gps"
+#define SECTION_GPSUSB		"gpsusb"
+#define SECTION_LBS			"lbs"
 
 #define STR_KEY_POID			"poid"
 #define STR_KEY_ACCESS_KEY		"accessKey"
