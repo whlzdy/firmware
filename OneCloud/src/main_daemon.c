@@ -66,6 +66,7 @@ int collect_cabinet_electricity(float* out_kwh, float* out_voltage, float* out_c
 int collect_cabinet_voice_db(float* out_voice_db);
 int collect_cabinet_gps_loc(float* out_longitude, float* out_latitude, float* out_altitude);
 int collect_cabinet_gpsusb_loc(float* out_longitude, float* out_latitude, float* out_altitude);
+int collect_cabinet_lbs(int* out_mcc, int* out_mnc, int* out_lac, int* out_ci);
 int call_cabinet_power_on();
 int call_cabinet_power_off();
 
@@ -199,6 +200,15 @@ int load_config(char *config) {
 		get_parameter_int(SECTION_GPSUSB, "listen_port", &temp_int,
 		OC_GPSUSB_PORT);
 		g_config->gpsusb_port = temp_int;
+	}
+
+	temp_int = 0;
+	get_parameter_int(SECTION_LBS, "enable", &temp_int, OC_FALSE);
+	if (temp_int == OC_TRUE) {
+		temp_int = 0;
+		get_parameter_int(SECTION_LBS, "listen_port", &temp_int,
+		OC_LBS_PORT);
+		g_config->lbs_port = temp_int;
 	}
 
 	memset(temp_value, 0, sizeof(temp_value));
@@ -622,9 +632,13 @@ int main_busi_query_cabinet_status(unsigned char* req_buf, int req_len, unsigned
 	float temperature = 43.4F;
 	float watt = 0.01F;
 	float voice_db = 40.5F;
-	float longitude = 0.0F;
-	float latitude = 0.0F;
+	float longitude = OC_GPS_COORD_UNDEF;
+	float latitude = OC_GPS_COORD_UNDEF;
 	float altitude = 0.0F;
+	int mcc = 0;
+	int mnc = 0;
+	int lac = OC_LBS_BSTN_UNDEF;
+	int ci = OC_LBS_BSTN_UNDEF;
 	time_t start_time = g_cabinet_start_time;
 	collect_cabinet_temperature(&temperature);
 	collect_cabinet_electricity(&kwh, &voltage, &current, &watt);
@@ -636,8 +650,12 @@ int main_busi_query_cabinet_status(unsigned char* req_buf, int req_len, unsigned
 		collect_cabinet_gpsusb_loc(&longitude, &latitude, &altitude);
 	}
 
+	if(g_config->lbs_port >0){
+		collect_cabinet_lbs(&mcc, &mnc, &lac, &ci);
+	}
+
 	result = generate_cmd_query_cabinet_resp(&resp, status, kwh, voltage, current, temperature,
-			watt, voice_db, longitude, latitude, start_time);
+			watt, voice_db, longitude, latitude, mcc, mnc, lac, ci, start_time);
 	if (resp == NULL)
 		result = OC_FAILURE;
 
@@ -1568,8 +1586,8 @@ int collect_cabinet_gps_loc(float* out_longitude, float* out_latitude, float* ou
 	} else {
 		log_debug_print(g_debug_verbose,
 				"Query gps, net_business_communicate return OC_FAILURE");
-		*out_longitude = 0.0F;
-		*out_latitude = 0.0F;
+		*out_longitude = OC_GPS_COORD_UNDEF;
+		*out_latitude = OC_GPS_COORD_UNDEF;
 		*out_altitude = 0.0F;
 	}
 
@@ -1625,9 +1643,58 @@ int collect_cabinet_gpsusb_loc(float* out_longitude, float* out_latitude, float*
 	} else {
 		log_debug_print(g_debug_verbose,
 				"Query gpsusb, net_business_communicate return OC_FAILURE");
-		*out_longitude = 0.0F;
-		*out_latitude = 0.0F;
+		*out_longitude = OC_GPS_COORD_UNDEF;
+		*out_latitude = OC_GPS_COORD_UNDEF;
 		*out_altitude = 0.0F;
+	}
+
+	if (resp_pkg != NULL)
+		free_network_package(resp_pkg);
+
+	return result;
+}
+
+/**
+ * Collect cabinet lbs information.
+ */
+int collect_cabinet_lbs(int* out_mcc, int* out_mnc, int* out_lac, int* out_ci) {
+	int result = OC_SUCCESS;
+
+	// Construct the command
+	uint8_t* busi_buf = NULL;
+	int busi_buf_len = 0;
+
+	OC_CMD_QUERY_LBS_REQ * req_query_lbs = NULL;
+	result = generate_cmd_query_lbs_req(&req_query_lbs, 0);
+	result = translate_cmd2buf_query_lbs_req(req_query_lbs, &busi_buf,
+			&busi_buf_len);
+	if (req_query_lbs != NULL)
+		free(req_query_lbs);
+
+	OC_NET_PACKAGE* resp_pkg = NULL;
+	OC_CMD_QUERY_LBS_RESP* resp_query_lbs = NULL;
+	result = net_business_communicate((uint8_t*) OC_LOCAL_IP, g_config->lbs_port,
+	OC_REQ_QUERY_LBS, busi_buf, busi_buf_len, &resp_pkg);
+	free(busi_buf);
+
+	if (result == OC_SUCCESS && resp_pkg != NULL) {
+		log_debug_print(g_debug_verbose,
+				"Query lbs, net_business_communicate return OC_SUCCESS");
+
+		// notify the invoker
+		resp_query_lbs = (OC_CMD_QUERY_LBS_RESP*) resp_pkg->data;
+
+		*out_mcc = resp_query_lbs->mcc;
+		*out_mnc = resp_query_lbs->mnc;
+		*out_lac = resp_query_lbs->lac;
+		*out_ci = resp_query_lbs->ci;
+	} else {
+		log_debug_print(g_debug_verbose,
+				"Query lbs, net_business_communicate return OC_FAILURE");
+		*out_mcc = 0;
+		*out_mnc = 0;
+		*out_lac = OC_LBS_BSTN_UNDEF;
+		*out_ci = OC_LBS_BSTN_UNDEF;
 	}
 
 	if (resp_pkg != NULL)

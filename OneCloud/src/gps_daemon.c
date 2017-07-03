@@ -36,9 +36,9 @@
 int serial_fd = 0;
 char device_name[32];
 uint32_t ew=0;                            //0: east, 1: west
-float longitude=0;			//longitude
+float longitude=OC_GPS_COORD_UNDEF;			//longitude
 uint32_t ns=0;                            //0: north, 1: south
-float latitude=0;				//latitude
+float latitude=OC_GPS_COORD_UNDEF;				//latitude
 float altitude=0;				//altitude
 
 int init_serial(char* device);
@@ -102,6 +102,14 @@ int load_config(char *config) {
 	temp_int = 0;
 	get_parameter_int(SECTION_GPS, "debug", &temp_int, OC_DEBUG_LEVEL_DISABLE);
 	g_debug_verbose = temp_int;
+
+	temp_int = 0;
+	get_parameter_int(SECTION_GPS, "enable", &temp_int, 0);
+	if(temp_int == OC_FALSE){
+		// disabled
+		log_info_print(g_debug_verbose, "gps_daemon is disabled, exit");
+		exit(EXIT_SUCCESS);
+	}
 
 	temp_int = 0;
 	get_parameter_int(SECTION_MAIN, "listen_port", &temp_int,

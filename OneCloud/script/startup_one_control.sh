@@ -28,10 +28,10 @@ nohup /opt/onecloud/bin/gpsusb_daemon >> ${LOG_FILE_DAEMON} 2>&1 &
 echo "start gpsusb daemon..."$ >> ${LOG_FILE}
 sleep 1
 
-#LOG_FILE_DAEMON=/opt/onecloud/log/gps_daemon.log.${DATE_STR}
-#nohup /opt/onecloud/bin/gps_daemon >> ${LOG_FILE_DAEMON} 2>&1 &
-#echo "start gps daemon..."$ >> ${LOG_FILE}
-#sleep 1
+LOG_FILE_DAEMON=/opt/onecloud/log/gps_daemon.log.${DATE_STR}
+nohup /opt/onecloud/bin/gps_daemon >> ${LOG_FILE_DAEMON} 2>&1 &
+echo "start gps daemon..."$ >> ${LOG_FILE}
+sleep 1
 
 LOG_FILE_DAEMON=/opt/onecloud/log/voice_daemon.log.${DATE_STR}
 nohup /opt/onecloud/bin/voice_daemon >> ${LOG_FILE_DAEMON} 2>&1 &

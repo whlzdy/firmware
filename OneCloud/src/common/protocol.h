@@ -100,7 +100,11 @@ typedef struct oc_cmd_query_cabinet_resp{
 	float	 voice_db;
 	float    longitude;
 	float    latitude;
-	int	 reserved_1;
+	int      mcc;
+	int      mnc;
+	int      lac;
+	int      ci;
+	int	     reserved_1;
 	float	 reserved_2;
 } OC_CMD_QUERY_CABINET_RESP;
 
@@ -640,6 +644,8 @@ typedef struct oc_cmd_query_lbs_resp{
 	uint32_t result;			//0: completed normal, 1: catch error.
 	time_t timestamp;			//current time
 	uint32_t error_no;			//error code
+	uint32_t mcc;               //mcc
+	uint32_t mnc;               //mnc
     uint32_t lac;               //lac
     uint32_t ci;                //ci
 	int		 reserved_1;
@@ -702,7 +708,8 @@ int generate_cmd_query_cabinet_req(OC_CMD_QUERY_CABINET_REQ ** out_req,	uint32_t
  */
 int generate_cmd_query_cabinet_resp(OC_CMD_QUERY_CABINET_RESP ** out_resp,
 		uint32_t status, float kwh, float voltage, float current,
-		float temperature, float watt, float voice_db, float longitude, float latitude, time_t start_time);
+		float temperature, float watt, float voice_db, float longitude, float latitude,
+		int mcc, int mnc, int lac, int ci, time_t start_time);
 
 /**
  * Translate request command to buffer: Cabinet query.
@@ -1281,7 +1288,7 @@ int generate_cmd_query_lbs_req(OC_CMD_QUERY_LBS_REQ ** out_req,	uint32_t flag);
 /**
  * Generate response command: Lbs query.
  */
-int generate_cmd_query_lbs_resp(OC_CMD_QUERY_LBS_RESP ** out_resp, uint32_t exec_result, uint32_t error_no, uint32_t lac, uint32_t ci, uint32_t reserved_1);
+int generate_cmd_query_lbs_resp(OC_CMD_QUERY_LBS_RESP ** out_resp, uint32_t exec_result, uint32_t error_no, uint32_t mcc, uint32_t mnc, uint32_t lac, uint32_t ci, uint32_t reserved_1);
 
 /**
  * Translate request command to buffer: Lbs query.

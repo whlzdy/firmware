@@ -1825,15 +1825,42 @@ void web_make_cabinet_status_parameters(OC_CMD_QUERY_CABINET_RESP* query_cabinet
 	sprintf(temp, "decibel=%.2f:", query_cabinet->voice_db);
 	strcat(custome, temp);
 
-	// longitude
-	memset((void*) temp, 0, sizeof(temp));
-	sprintf(temp, "longitude=%.8f:", query_cabinet->longitude);
-	strcat(custome, temp);
+	// gps
+	if(query_cabinet->longitude != OC_GPS_COORD_UNDEF){
+		// longitude
+		memset((void*) temp, 0, sizeof(temp));
+		sprintf(temp, "longitude=%.8f:", query_cabinet->longitude);
+		strcat(custome, temp);
 
-	// latitude
-	memset((void*) temp, 0, sizeof(temp));
-	sprintf(temp, "latitude=%.8f:", query_cabinet->latitude);
-	strcat(custome, temp);
+		// latitude
+		memset((void*) temp, 0, sizeof(temp));
+		sprintf(temp, "latitude=%.8f:", query_cabinet->latitude);
+		strcat(custome, temp);
+	}
+
+	// lbs
+	if(query_cabinet->lac != OC_LBS_BSTN_UNDEF){
+		// mcc
+		memset((void*) temp, 0, sizeof(temp));
+		sprintf(temp, "mcc=%d:", query_cabinet->mcc);
+		strcat(custome, temp);
+
+		// mnc
+		memset((void*) temp, 0, sizeof(temp));
+		sprintf(temp, "mnc=%d:", query_cabinet->mnc);
+		strcat(custome, temp);
+
+		// lac
+		memset((void*) temp, 0, sizeof(temp));
+		sprintf(temp, "lac=%d:", query_cabinet->lac);
+		strcat(custome, temp);
+
+		// ci
+		memset((void*) temp, 0, sizeof(temp));
+		sprintf(temp, "ci=%d:", query_cabinet->ci);
+		strcat(custome, temp);
+	}
+
 
 	// uptime
 	memset((void*) temp, 0, sizeof(temp));

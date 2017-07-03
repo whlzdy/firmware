@@ -96,4 +96,7 @@
 #define OC_STARTUP_TOTAL_STEP	4
 #define OC_SHUTDOWN_TOTAL_STEP	4
 
+#define OC_GPS_COORD_UNDEF 200.0F  // gps coordinate undefined
+#define OC_LBS_BSTN_UNDEF 80000    // lbs base station undefined
+
 #endif /* ONECLOUD_H_ */

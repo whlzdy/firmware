@@ -35,8 +35,10 @@
 
 int serial_fd = 0;
 char device_name[32];
-uint32_t lac = 0;
-uint32_t ci = 0;
+uint32_t mcc = 0;
+uint32_t mnc = 0;
+uint32_t lac = OC_LBS_BSTN_UNDEF;
+uint32_t ci = OC_LBS_BSTN_UNDEF;
 
 int init_serial(char* device);
 int uart_send(int fd, char *data, int datalen);
@@ -101,6 +103,14 @@ int load_config(char *config) {
 	g_debug_verbose = temp_int;
 
 	temp_int = 0;
+	get_parameter_int(SECTION_LBS, "enable", &temp_int, 0);
+	if(temp_int == OC_FALSE){
+		// disabled
+		log_info_print(g_debug_verbose, "lbs_daemon is disabled, exit");
+		exit(EXIT_SUCCESS);
+	}
+
+	temp_int = 0;
 	get_parameter_int(SECTION_MAIN, "listen_port", &temp_int,
 	OC_MAIN_DEFAULT_PORT);
 	g_config->main_listen_port = temp_int;
@@ -114,6 +124,16 @@ int load_config(char *config) {
 	get_parameter_int(SECTION_LBS, "listen_port", &temp_int,
 	OC_LBS_PORT);
 	g_config->lbs_port = temp_int;
+
+	temp_int = 0;
+	get_parameter_int(SECTION_LBS, "mcc", &temp_int,
+	0);
+	mcc = temp_int;
+
+	temp_int = 0;
+	get_parameter_int(SECTION_LBS, "mnc", &temp_int,
+	0);
+	mnc = temp_int;
 
 	release_config_map();
 
@@ -372,7 +392,7 @@ int main_busi_query_lbs(unsigned char* req_buf, int req_len, unsigned char* resp
 	uint8_t* temp_buf = NULL;
 	int busi_buf_len = 0;
 	int temp_buf_len = 0;
-	result = generate_cmd_query_lbs_resp(&response, exec_result, error_no, lac, ci, 0);
+	result = generate_cmd_query_lbs_resp(&response, exec_result, error_no, mcc, mnc, lac, ci, 0);
 	result = translate_cmd2buf_query_lbs_resp(response, &busi_buf, &busi_buf_len);
 	if (result == OC_SUCCESS) {
 		result = generate_response_package(OC_REQ_QUERY_LBS, busi_buf, busi_buf_len,
