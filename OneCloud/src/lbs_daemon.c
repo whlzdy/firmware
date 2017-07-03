@@ -529,8 +529,9 @@ static void* thread_com_lbs_handle(void*) {
 			}
 		}
 		if(control_found != 1){
-			log_error_print(g_debug_verbose, "lbs control device not found!");
-			exit(EXIT_FAILURE);
+			log_error_print(g_debug_verbose, "lbs control device not found! retry in 1 minutes");
+			sleep(60);
+			continue;
 		}
 		strcpy(device_name, token0);
 		log_debug_print(g_debug_verbose, "lbs device_name %s", device_name);
@@ -541,8 +542,8 @@ static void* thread_com_lbs_handle(void*) {
 			}
 			sleep(600);
 			if(com_lbs_control_test(device_name)!=0){
-				log_debug_print(g_debug_verbose, "lbs control device error [%s]", device_name);
-					break;
+				log_error_print(g_debug_verbose, "lbs control device error [%s]", device_name);
+				break;
 			}
 		}
 	}
