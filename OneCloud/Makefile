@@ -57,10 +57,10 @@ WATCH_DOG_SRC = ${DIR_SRC}/watch_dog.c
 WATCH_DOG_BIN = ${DIR_BIN}/${WATCH_DOG_PROG}
 WATCH_DOG_TGT = $(DIR_OBJ)/watch_dog.o
 
-APP_SERVICE_PROG = app_service
-APP_SERVICE_SRC = ${DIR_SRC}/app_service.cpp
+APP_SERVICE_PROG = agent
+APP_SERVICE_SRC = ${DIR_SRC}/agent.cpp
 APP_SERVICE_BIN = ${DIR_BIN}/${APP_SERVICE_PROG}
-APP_SERVICE_TGT = $(DIR_OBJ)/app_service.opp
+APP_SERVICE_TGT = $(DIR_OBJ)/agent.opp
 
 HTTP_SIGN_PROG = http_sign
 HTTP_SIGN_SRC = ${DIR_SRC}/http_sign.c
