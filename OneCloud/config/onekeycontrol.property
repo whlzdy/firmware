@@ -1,10 +1,10 @@
 # iscsi ip address
-iscsiip1="172.28.101.43"
+iscsiip1="172.28.101.101"
 #iscsiip2="192.168.153.11"
 
 # ipmi username and password
-user="root"
-password="engine"
+user="ADMIN"
+password="ADMIN"
 
 # system vm
 systemvm1ip="172.28.101.22"
