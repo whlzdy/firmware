@@ -534,6 +534,12 @@ function doJsonResponse {
 				echo "${out}"
 				log "REST_REQUEST_RESPONSE" "SUCC" "path:${path} and query string:${serverid} and response:${out}"
 			fi			
+		elif [ "${path}" == "all" ]
+		then
+			out="$(/opt/onecloud/bin/monitor_client type=all 2>&1 | grep -v Debug)"
+                        echo ""
+                        echo "${out}"
+                        log "REST_REQUEST_RESPONSE" "SUCCESS" "path:${path} and query string:${qs} and response:${out}"
 		elif [ "${path}" == "updatepwd" ]
 		then
 			if [ -z "${qs}" ]
