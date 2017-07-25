@@ -22,6 +22,7 @@
 #include "common/protocol.h"
 #include "common/net.h"
 #include "util/log_helper.h"
+#include "util/cJSON.h"       //add refence cjson object 
 
 void print_json_cabinet_query(OC_CMD_QUERY_CABINET_RESP* query_cabinet);
 void print_json_server_query(OC_CMD_QUERY_SERVER_RESP* query_server);
@@ -36,7 +37,7 @@ char g_config_file[256];
 struct settings *g_config = NULL;
 
 void cmd_helper() {
-	fprintf(stderr, "usage: monitor_client type=<cabinet|server|cg|qg|qt|qe|ce|qv|qgps|qgpsusb> [server_id=<string>] [event=<int>]\n");
+	fprintf(stderr, "usage: monitor_client type=<cabinet|server|cg|qg|qt|qe|ce|qv|qgps|qgpsusb|all> [server_id=<string>] [event=<int>]\n");
 }
 
 #define QUERY_TYPE_CABINET		0
@@ -50,6 +51,7 @@ void cmd_helper() {
 #define QUERY_TYPE_GPS			8
 #define QUERY_TYPE_GPSUSB		9
 #define QUERY_TYPE_LBS			10
+#define QUERY_TYPE_ALL                11
 #define QUERY_TYPE_NONE			99
 
 /**
@@ -121,7 +123,10 @@ int main(int argc, char **argv) {
 			monitor_type = QUERY_TYPE_GPSUSB;
 		} else if (strcmp("qlbs", param_value) == 0) {
 			monitor_type = QUERY_TYPE_LBS;
-		} else {
+		} else if (strcmp("all", param_value) == 0) {
+			monitor_type = QUERY_TYPE_ALL;
+		}
+		else {
 			monitor_type = QUERY_TYPE_NONE;
 			cmd_helper();
 			exit(EXIT_FAILURE);
@@ -181,7 +186,98 @@ int main(int argc, char **argv) {
 		log_debug_print(g_debug_verbose, "server_num=%d ", query_server->server_num);
 		print_json_server_query(query_server);
 
-		} else if (monitor_type == CTRL_TYPE_GPIO) {
+		} else  if(monitor_type == QUERY_TYPE_ALL)
+		{
+			//s1:cabinet
+			// Construct the request command
+			OC_CMD_QUERY_CABINET_REQ * req_cabinet = NULL;
+			result = generate_cmd_query_cabinet_req(&req_cabinet, 0);
+			result = translate_cmd2buf_query_cabinet_req(req_cabinet, &busi_buf, &busi_buf_len);
+			if (req_cabinet != NULL)
+				free(req_cabinet);
+			// Communication with server
+			result = net_business_communicate((uint8_t*) OC_LOCAL_IP, OC_MAIN_DEFAULT_PORT,
+			OC_REQ_QUERY_CABINET_STATUS, busi_buf, busi_buf_len, &resp_pkg);
+			package_print_frame(resp_pkg);
+			OC_CMD_QUERY_CABINET_RESP* query_cabinet = (OC_CMD_QUERY_CABINET_RESP*) resp_pkg->data;
+			log_debug_print(g_debug_verbose, "kwh=%f", query_cabinet->kwh);
+			//s2:server
+			OC_CMD_QUERY_SERVER_REQ * req_server = NULL;
+			uint32_t type = 0;
+			if (strlen((const char*) server_id) > 0)
+			type = 1;
+			result = generate_cmd_query_server_req(&req_server, type, server_id, 0);
+			result = translate_cmd2buf_query_server_req(req_server, &busi_buf, &busi_buf_len);
+			if (req_server != NULL)
+			free(req_server);
+			// Communication with server
+			result = net_business_communicate((uint8_t*) OC_LOCAL_IP, OC_MAIN_DEFAULT_PORT,
+			OC_REQ_QUERY_SERVER_STATUS, busi_buf, busi_buf_len, &resp_pkg);
+			package_print_frame(resp_pkg);
+			OC_CMD_QUERY_SERVER_RESP* query_server = (OC_CMD_QUERY_SERVER_RESP*) resp_pkg->data;
+			//s3:cjson serialzer
+			cJSON *root,*servers,*item;
+			char *out;
+			int i;
+			char tmp_str[32] = {0};
+			root=cJSON_CreateObject();      // root object
+			//add object to root
+			//printf(
+			//"{\"timestamp\":\"%d\",\"status\":%d,\"kwh\":%.2f,\"voltage\":%.2f,\"current\":%.2f,\"temperature\":%.2f,\"watt\":%.2f,\"decibel\":%.2f}\n",
+			//query_cabinet->timestamp, query_cabinet->status, query_cabinet->kwh,
+			//query_cabinet->voltage, query_cabinet->current, query_cabinet->temperature,
+			//query_cabinet->watt, query_cabinet->voice_db);
+
+			//sprintf(temp, "\"type\":%d,\"name\":\"%s\",\"mac\":\"%s\",\"ip\":\"%s\",\"status\":%d",
+			//	server_data[i].type, server_data[i].name,
+			//	server_data[i].mac, server_data[i].ip,
+			//	server_data[i].status);
+			cJSON_AddNumberToObject(root,"timestamp",query_cabinet->timestamp);    
+			cJSON_AddNumberToObject(root,"status",query_cabinet->status);   
+			memset(tmp_str,0,32);
+			sprintf(tmp_str,"%.2f",query_cabinet->kwh);
+			cJSON_AddStringToObject(root,"kwh",tmp_str);    
+			memset(tmp_str,0,32);
+			sprintf(tmp_str,"%.2f",query_cabinet->kwh);
+			cJSON_AddStringToObject(root,"voltage",tmp_str);  
+			memset(tmp_str,0,32);
+			sprintf(tmp_str,"%.2f",query_cabinet->current);
+			cJSON_AddStringToObject(root,"current",tmp_str);    
+			memset(tmp_str,0,32);
+			sprintf(tmp_str,"%.2f",query_cabinet->temperature);
+			cJSON_AddStringToObject(root,"temperature",tmp_str);    
+			memset(tmp_str,0,32);
+			sprintf(tmp_str,"%.2f",query_cabinet->watt);
+			cJSON_AddStringToObject(root,"watt",tmp_str);    
+			memset(tmp_str,0,32);
+			sprintf(tmp_str,"%.2f",query_cabinet->voice_db);
+			cJSON_AddNumberToObject(root,"decibel",tmp_str);   
+			cJSON_AddItemToObject(root,"servers",servers=cJSON_CreateArray());    //servers array
+			if (query_server->server_num  > 0 ) {
+				OC_SERVER_STATUS* server_data = (OC_SERVER_STATUS*) (((char*)query_server) + sizeof(uint32_t) * 2);
+				//add sring msg to params
+				for(i = 0;i < query_server->server_num;i++)
+				{
+					cJSON_AddNumberToObject(item = cJSON_CreateObject(),"type",server_data[i].type);
+					memset(tmp_str,0,32);
+					sprintf(tmp_str,"%s",server_data[i].name);
+					cJSON_AddStringToObject(item ,"name",tmp_str);
+					memset(tmp_str,0,32);
+					sprintf(tmp_str,"%s",server_data[i].mac);
+					cJSON_AddStringToObject(item ,"mac",tmp_str);
+					memset(tmp_str,0,32);
+					sprintf(tmp_str,"%s",server_data[i].ip);
+					cJSON_AddStringToObject(item ,"ip",tmp_str);
+					cJSON_AddNumberToObject(item ,"status",server_data[i].status);
+					cJSON_AddItemToArray(servers,item);
+				}	
+			}
+			out=cJSON_Print(root);
+			cJSON_Delete(root);
+			printf("%s\n",out);
+			free(out);
+			
+		}else if (monitor_type == CTRL_TYPE_GPIO) {
 
 			// Construct the request command
 			OC_CMD_CTRL_GPIO_REQ * req_cabinet = NULL;
