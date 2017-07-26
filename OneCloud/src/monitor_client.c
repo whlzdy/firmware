@@ -251,7 +251,7 @@ int main(int argc, char **argv) {
 			cJSON_AddStringToObject(root,"watt",tmp_str);    
 			memset(tmp_str,0,32);
 			sprintf(tmp_str,"%.2f",query_cabinet->voice_db);
-			cJSON_AddNumberToObject(root,"decibel",tmp_str);   
+			cJSON_AddStringToObject(root,"decibel",tmp_str);   
 			cJSON_AddItemToObject(root,"servers",servers=cJSON_CreateArray());    //servers array
 			if (query_server->server_num  > 0 ) {
 				OC_SERVER_STATUS* server_data = (OC_SERVER_STATUS*) (((char*)query_server) + sizeof(uint32_t) * 2);
