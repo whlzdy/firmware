@@ -238,7 +238,7 @@ int main(int argc, char **argv) {
 			sprintf(tmp_str,"%.2f",query_cabinet->kwh);
 			cJSON_AddStringToObject(root,"kwh",tmp_str);    
 			memset(tmp_str,0,32);
-			sprintf(tmp_str,"%.2f",query_cabinet->kwh);
+			sprintf(tmp_str,"%.2f",query_cabinet->voltage);
 			cJSON_AddStringToObject(root,"voltage",tmp_str);  
 			memset(tmp_str,0,32);
 			sprintf(tmp_str,"%.2f",query_cabinet->current);
@@ -261,13 +261,17 @@ int main(int argc, char **argv) {
 					cJSON_AddNumberToObject(item = cJSON_CreateObject(),"type",server_data[i].type);
 					memset(tmp_str,0,32);
 					sprintf(tmp_str,"%s",server_data[i].name);
+					log_debug_print(g_debug_verbose, "name=%s ", server_data[i].name);
 					cJSON_AddStringToObject(item ,"name",tmp_str);
 					memset(tmp_str,0,32);
 					sprintf(tmp_str,"%s",server_data[i].mac);
+					log_debug_print(g_debug_verbose, "mac=%s ", server_data[i].mac);
 					cJSON_AddStringToObject(item ,"mac",tmp_str);
 					memset(tmp_str,0,32);
 					sprintf(tmp_str,"%s",server_data[i].ip);
+					log_debug_print(g_debug_verbose, "ip=%s ", server_data[i].ip);
 					cJSON_AddStringToObject(item ,"ip",tmp_str);
+					log_debug_print(g_debug_verbose, "status=%d", server_data[i].status);
 					cJSON_AddNumberToObject(item ,"status",server_data[i].status);
 					cJSON_AddItemToArray(servers,item);
 				}	

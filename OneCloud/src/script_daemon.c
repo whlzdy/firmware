@@ -798,8 +798,9 @@ int str_parse_server_data(uint8_t* buffer, char* server_id, OC_SERVER_STATUS** s
 	int param_status = 0;
 	int ret_num = 0;
 	int temp_counter = 0;
+	char mac[MAX_PARAM_NAME_LEN] = {0};
 
-	char temp_buf[160];
+	char temp_buf[320];
 	for (i = 0; i < effect_len; i++) {
 		if (buffer[i] == '\,') {
 			end_offset = i - 1;
@@ -809,14 +810,16 @@ int str_parse_server_data(uint8_t* buffer, char* server_id, OC_SERVER_STATUS** s
 			memset(temp_buf, 0, sizeof(temp_buf));
 			memset(param_name, 0, sizeof(param_name));
 			memset(param_ip, 0, sizeof(param_ip));
+			memset(mac, 0, sizeof(mac));
 			param_type = 0;
 			param_status = 0;
 
 			strncpy(temp_buf, (const char*) (buffer + start_offset),
 					(end_offset - start_offset + 1));
-			sscanf(temp_buf, "%s %d %d %s", param_name, &param_type, &param_status, param_ip);
+			sscanf(temp_buf, "%s %d %d %s %s", param_name, &param_type, &param_status, param_ip,mac);
 			strcpy((char*) (temp_status[n_counter].name), param_name);
 			strcpy((char*) (temp_status[n_counter].ip), param_ip);
+			strcpy((char*) (temp_status[n_counter].mac), mac);
 			temp_status[n_counter].type = param_type;
 			temp_status[n_counter].status = param_status;
 			temp_status[n_counter].seq_id = n_counter + 1;
@@ -833,12 +836,14 @@ int str_parse_server_data(uint8_t* buffer, char* server_id, OC_SERVER_STATUS** s
 		memset(temp_buf, 0, sizeof(temp_buf));
 		memset(param_name, 0, sizeof(param_name));
 		memset(param_ip, 0, sizeof(param_ip));
+		memset(mac, 0, sizeof(mac));
 		param_type = 0;
 		param_status = 0;
 		strncpy(temp_buf, (const char*) (buffer + start_offset), (end_offset - start_offset + 1));
-		sscanf(temp_buf, "%s %d %d %s", param_name, &param_type, &param_status, param_ip);
+		sscanf(temp_buf, "%s %d %d %s %s", param_name, &param_type, &param_status, param_ip,mac);
 		strcpy((char*) (temp_status[n_counter].name), param_name);
 		strcpy((char*) (temp_status[n_counter].ip), param_ip);
+		strcpy((char*) (temp_status[n_counter].mac), mac);
 		temp_status[n_counter].type = param_type;
 		temp_status[n_counter].status = param_status;
 		temp_status[n_counter].seq_id = n_counter + 1;
@@ -872,6 +877,7 @@ int str_parse_server_data(uint8_t* buffer, char* server_id, OC_SERVER_STATUS** s
 				}
 				strcpy((char*) (params[temp_counter].name), (const char*) (temp_status[i].name));
 				strcpy((char*) (params[temp_counter].ip), (const char*) (temp_status[i].ip));
+				strcpy((char*) (params[temp_counter].mac), (const char*) (temp_status[i].mac));
 				params[temp_counter].type = temp_status[i].type;
 				params[temp_counter].status = temp_status[i].status;
 				params[temp_counter].seq_id = temp_status[i].seq_id;

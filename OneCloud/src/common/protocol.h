@@ -128,9 +128,9 @@ typedef struct oc_cmd_query_cabinet_resp{
 typedef struct oc_server_status{
 	uint32_t seq_id;			//command
 	uint32_t type;				//0:server, 1:switch, 2:firewall, 3:raid, 4:router, 5:ups
-	uint8_t	 name[16];			//Name of server
-	uint8_t	 mac[12];			//MAC address
-	uint8_t	 ip[16];			//IP address
+	uint8_t	 name[32];			//Name of server
+	uint8_t	 mac[32];			//MAC address
+	uint8_t	 ip[32];			//IP address
 	uint32_t status;			//1:running, 0:shutdown
 } OC_SERVER_STATUS;
 
