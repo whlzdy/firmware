@@ -216,7 +216,7 @@ int main(int argc, char **argv) {
 			package_print_frame(resp_pkg);
 			OC_CMD_QUERY_SERVER_RESP* query_server = (OC_CMD_QUERY_SERVER_RESP*) resp_pkg->data;
 			//s3:cjson serialzer
-			cJSON *root,*servers,*item;
+			cJSON *root,*devices,*servers,*item;
 			char *out;
 			int i;
 			char tmp_str[32] = {0};
@@ -252,8 +252,67 @@ int main(int argc, char **argv) {
 			memset(tmp_str,0,32);
 			sprintf(tmp_str,"%.2f",query_cabinet->voice_db);
 			cJSON_AddStringToObject(root,"decibel",tmp_str);   
-			cJSON_AddItemToObject(root,"servers",servers=cJSON_CreateArray());    //servers array
-			if (query_server->server_num  > 0 ) {
+
+			// gps
+			if(query_cabinet->longitude != OC_GPS_COORD_UNDEF){
+				// longitude
+				memset(tmp_str,0,32);
+				sprintf(tmp_str, "%.8f", query_cabinet->longitude);
+				cJSON_AddStringToObject(root,"longitude",tmp_str);   
+				// latitude
+				memset(tmp_str,0,32);
+				sprintf(tmp_str, "%.8f", query_cabinet->latitude);
+				cJSON_AddStringToObject(root,"latitude",tmp_str); 
+			}
+
+			// lbs
+			if(query_cabinet->lac != OC_LBS_BSTN_UNDEF){
+				// mcc
+				cJSON_AddNumberToObject(root,"mcc",query_cabinet->mcc);  
+				// mnc
+				cJSON_AddNumberToObject(root,"mnc",query_cabinet->mnc);  
+				// lac
+				cJSON_AddNumberToObject(root,"lac",query_cabinet->lac);   
+				// ci
+				cJSON_AddNumberToObject(root,"ci",query_cabinet->ci);   
+			}
+			// uptime
+			int  cabinet_status = query_cabinet->status;
+			memset( tmp_str, 0, sizeof(tmp_str));
+			time_t now_time = time(NULL);
+			long running_time = 0;
+			if ((cabinet_status == OC_CABINET_STATUS_RUNNING
+					|| cabinet_status == OC_CABINET_STATUS_STOPPING) && query_cabinet->start_time > 0)
+				running_time = now_time - query_cabinet->start_time;
+			cJSON_AddNumberToObject(root,"uptime",running_time);   
+			char dev_status[8];
+			if(cabinet_status == OC_CABINET_STATUS_RUNNING
+				|| cabinet_status == OC_CABINET_STATUS_STOPPING || cabinet_status == OC_CABINET_STATUS_STARTING)
+				strcpy(dev_status, "true");
+			else
+				strcpy(dev_status, "false");
+			if(query_server->server_num > 0)
+			{
+				cJSON_AddItemToObject(root,"devices",devices=cJSON_CreateArray());    //servers array
+				cJSON_AddStringToObject(item = cJSON_CreateObject() ,"name","storage");
+				cJSON_AddStringToObject(item ,"type","raid");
+				cJSON_AddStringToObject(item ,"working",dev_status);
+				cJSON_AddItemToArray(devices,item);
+				
+				cJSON_AddStringToObject(item = cJSON_CreateObject() ,"name","firewall");
+				cJSON_AddStringToObject(item ,"type","firewall");
+				cJSON_AddStringToObject(item ,"working",dev_status);
+				cJSON_AddItemToArray(devices,item);
+				
+				cJSON_AddStringToObject(item = cJSON_CreateObject() ,"name","switch");
+				cJSON_AddStringToObject(item ,"type","switch");
+				cJSON_AddStringToObject(item ,"working",dev_status);
+				cJSON_AddItemToArray(devices,item);
+
+				cJSON_AddStringToObject(item = cJSON_CreateObject() ,"name","servers");
+				cJSON_AddStringToObject(item ,"type","server");	
+				cJSON_AddItemToObject(item,"servers",servers=cJSON_CreateArray());    //servers array
+				cJSON_AddItemToArray(devices,item);
 				OC_SERVER_STATUS* server_data = (OC_SERVER_STATUS*) (((char*)query_server) + sizeof(uint32_t) * 2);
 				//add sring msg to params
 				for(i = 0;i < query_server->server_num;i++)
@@ -275,7 +334,9 @@ int main(int argc, char **argv) {
 					cJSON_AddNumberToObject(item ,"status",server_data[i].status);
 					cJSON_AddItemToArray(servers,item);
 				}	
+				
 			}
+			
 			out=cJSON_Print(root);
 			cJSON_Delete(root);
 			printf("%s\n",out);
