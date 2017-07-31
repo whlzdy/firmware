@@ -16,6 +16,7 @@ STATUS_FILE=${ONECLOUD_HOME}/script/server/control/server_status.tmp
 if [ ! -e ${STATUS_FILE} ]
 then
     echo 0
+    exit
 fi
 
 MERGY_TEXT=
@@ -31,5 +32,11 @@ do
         fi
     fi
 done  < $STATUS_FILE
+
+if [ -z "${MERGY_TEXT}" ]
+then
+    echo 0
+    exit
+fi
 
 echo ${MERGY_TEXT}
