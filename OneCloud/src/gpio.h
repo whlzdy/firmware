@@ -37,8 +37,8 @@
 #define GPIO_FLAG_IO_ALL_OUTPUT 0x00
 #define GPIO_FLAG_IO_ALL_INPUT 0xFF
 
-// P0&P1 as input (0000 0011)
-#define GPIO_FLAG_IO_CONFIG 0x03
+// P0&P1&P5&P6&P7 as input (1110 0011)
+#define GPIO_FLAG_IO_CONFIG 0xE3
 
 // button press time span 100ms
 #define BTN_PRESS_TIME 100*20
@@ -83,7 +83,10 @@ uint32_t button_1;
 LED_STATUS dev_led_1;
 LED_STATUS dev_led_2;
 LED_STATUS dev_led_3;
-LED_STATUS dev_led_4;
+//LED_STATUS dev_led_4;
+uint32_t button_2;
+uint32_t button_3;
+uint32_t button_4;
 CONTROL_MESSAGE receive_message;
 CONTROL_MESSAGE send_message;
 uint32_t io_status;			//32bit, one pin using 4bit

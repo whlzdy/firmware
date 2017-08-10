@@ -406,7 +406,7 @@ int main_busi_query_gpio(unsigned char* req_buf, int req_len, unsigned char* res
 	int busi_buf_len = 0;
 	int temp_buf_len = 0;
 	result = generate_cmd_query_gpio_resp(&response, exec_result, io_status, button_0, button_1,
-			dev_led_1.status, dev_led_2.status, dev_led_3.status, dev_led_4.status, 0, 0);
+			dev_led_1.status, dev_led_2.status, dev_led_3.status, button_2, button_3, button_4);
 	result = translate_cmd2buf_query_gpio_resp(response, &busi_buf, &busi_buf_len);
 	if (result == OC_SUCCESS) {
 		result = generate_response_package(OC_REQ_QUERY_GPIO, busi_buf, busi_buf_len, &temp_buf,
@@ -475,6 +475,9 @@ static void* thread_gpio_routine_handle(void*) {
 	int btn_release_delay_time = BTN_RELEASE_DELAY_TIME / GPIO_MAIN_TIMESTAMP;
 	button_0 = 0;
 	button_1 = 0;
+	button_2 = 0;
+	button_3 = 0;
+	button_4 = 0;
 	control_led_status(0);
 	memset(&receive_message, 0x00, sizeof(CONTROL_MESSAGE));
 	memset(&send_message, 0x00, sizeof(CONTROL_MESSAGE));
@@ -491,6 +494,12 @@ static void* thread_gpio_routine_handle(void*) {
 		tempData = ioData & GPIO_BIT_P1;
 		p1_low_counter = (tempData > 0 ? 0 : (p1_low_counter + 1));
 		button_1 = (tempData > 0 ? 0 : 1);
+		tempData = ioData & GPIO_BIT_P5;
+		button_2 = (tempData > 0 ? 0 : 1);
+		tempData = ioData & GPIO_BIT_P6;
+		button_3 = (tempData > 0 ? 0 : 1);
+		tempData = ioData & GPIO_BIT_P7;
+		button_4 = (tempData > 0 ? 0 : 1);
 
 		////////////////////////////////////////////////////////////////////////
 		// GPIO business process
@@ -548,10 +557,10 @@ static void* thread_gpio_routine_handle(void*) {
 		tempData = led_status_update_process(&dev_led_3, tempData, GPIO_BIT_P4);
 		newIoData = tempData | ((~GPIO_BIT_P4) & newIoData);
 
-		// LED 4 (P6)
-		tempData = ioData & GPIO_BIT_P6;
-		tempData = led_status_update_process(&dev_led_4, tempData, GPIO_BIT_P6);
-		newIoData = tempData | ((~GPIO_BIT_P6) & newIoData);
+//		// LED 4 (P6)
+//		tempData = ioData & GPIO_BIT_P6;
+//		tempData = led_status_update_process(&dev_led_4, tempData, GPIO_BIT_P6);
+//		newIoData = tempData | ((~GPIO_BIT_P6) & newIoData);
 
 		// Update LED status
 		outb(newIoData, GPIO_DATA);
@@ -562,6 +571,10 @@ static void* thread_gpio_routine_handle(void*) {
 		// delay counter
 		p0_low_release_delay = (p0_low_release_delay > 0 ? (p0_low_release_delay - 1) : 0);
 		p1_low_release_delay = (p1_low_release_delay > 0 ? (p1_low_release_delay - 1) : 0);
+
+		io_status = button_0 + (button_1 << 4) + (dev_led_1.status << 8) + (dev_led_2.status << 12)
+				+ (dev_led_3.status << 16) + (button_2 << 20) + (button_3 << 24) + (button_4 << 28);
+		//log_debug_print(g_debug_verbose, "io_status=[%d][%X]", io_status, io_status);
 
 		//sleep 1msxn,
 		usleep(1000 * GPIO_MAIN_TIMESTAMP);
@@ -607,14 +620,14 @@ void init_led_status() {
 	dev_led_3.flash_on_counter = 0;
 	dev_led_3.save_status = dev_led_3.status;
 
-	// LED 4
-	dev_led_4.status = 1;
-	dev_led_4.flash_span_time = LED_FLASH_TIME_DEFAULT;
-	dev_led_4.flash_retain_time = LED_FLASH_RETAIN_TIME;
-	dev_led_4.flash_retain_counter = 0;
-	dev_led_4.flash_off_counter = 0;
-	dev_led_4.flash_on_counter = 0;
-	dev_led_4.save_status = dev_led_4.status;
+//	// LED 4
+//	dev_led_4.status = 1;
+//	dev_led_4.flash_span_time = LED_FLASH_TIME_DEFAULT;
+//	dev_led_4.flash_retain_time = LED_FLASH_RETAIN_TIME;
+//	dev_led_4.flash_retain_counter = 0;
+//	dev_led_4.flash_off_counter = 0;
+//	dev_led_4.flash_on_counter = 0;
+//	dev_led_4.save_status = dev_led_4.status;
 
 	// Now just support on or off
 	if (dev_led_1.status == 1)
@@ -623,8 +636,8 @@ void init_led_status() {
 		ioData = ioData | GPIO_BIT_P3;
 	if (dev_led_3.status == 1)
 		ioData = ioData | GPIO_BIT_P4;
-	if (dev_led_4.status == 1)
-		ioData = ioData | GPIO_BIT_P6;
+//	if (dev_led_4.status == 1)
+//		ioData = ioData | GPIO_BIT_P6;
 
 	// output data
 	outb(ioData, GPIO_DATA);
@@ -719,9 +732,6 @@ void control_led_status(uint32_t event) {
 		printf("no meaning %d\n", event);
 		break;
 	}
-	io_status = button_0 + (button_1 << 4) + (dev_led_1.status << 8) + (dev_led_2.status << 12)
-			+ (dev_led_3.status << 16);
-	log_debug_print(g_debug_verbose, "io_status=[%d][%X]", io_status, io_status);
 	log_debug_print(g_debug_verbose, "event=[%d]", event);
 }
 

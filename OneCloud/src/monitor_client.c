@@ -219,7 +219,7 @@ int main(int argc, char **argv) {
 			package_print_frame(resp_pkg);
 
 			OC_CMD_QUERY_GPIO_RESP* query_server = (OC_CMD_QUERY_GPIO_RESP*) resp_pkg->data;
-			fprintf(stderr, "Info:result=%d io_status=%d io_status=%X \n", query_server->result, query_server->io_status, query_server->io_status);
+			fprintf(stderr, "Info:result=%d io_status=%d io_status=%X p0=%d p1=%d p2=%d p3=%d p4=%d p5=%d p6=%d p7=%d\n", query_server->result, query_server->io_status, query_server->io_status, query_server->p0_status, query_server->p1_status, query_server->p2_status, query_server->p3_status, query_server->p4_status, query_server->p5_status, query_server->p6_status, query_server->p7_status);
 
 		} else if (monitor_type == QUERY_TYPE_TEMPERATURE) {
 
