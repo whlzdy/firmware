@@ -9,10 +9,16 @@ for file in ${files}
 do
 	name="$(cat ${serverconfigpath}/${file} | grep 'name=' | awk -F "=" '{print $2}')"
 	ip="$(cat ${serverconfigpath}/${file} | grep 'ip=' | awk -F "=" '{print $2}')"
-		
+	mac="$(cat ${serverconfigpath}/${file} | grep 'mac=' | awk -F "=" '{print $2}')"
+	
+	if [ -z "${mac}" ]
+	then
+		mac="null"
+	fi
+	
 	devicetype=$(getType ${file})
 	
-	if [ -n "${ip}" ]
+	if [ -n "${ip}" ] && [ "${devicetype}" -eq "0" ]
 	then
 		isConnected=$(checkConnection ${ip})
 		if [ "${isConnected}" -eq "0" ]
@@ -21,6 +27,6 @@ do
 		else
 			status="0"
 		fi
-		echo "${name} ${devicetype} ${status} ${ip}" >> "${statusfile}"
+		echo "${name} ${devicetype} ${status} ${ip} ${mac}" >> "${statusfile}"
 	fi
 done
