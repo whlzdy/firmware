@@ -215,7 +215,32 @@ int main(int argc, char **argv) {
 			OC_REQ_QUERY_SERVER_STATUS, busi_buf, busi_buf_len, &resp_pkg);
 			package_print_frame(resp_pkg);
 			OC_CMD_QUERY_SERVER_RESP* query_server = (OC_CMD_QUERY_SERVER_RESP*) resp_pkg->data;
-			//s3:cjson serialzer
+			//s3: check door status
+ #if 1
+ 			// Construct the request command
+			OC_CMD_QUERY_GPIO_REQ * req_gpio_server = NULL;
+			if (strlen((const char*) server_id) > 0)
+				type = 1;
+			result = generate_cmd_query_gpio_req(&req_gpio_server, 0);
+			result = translate_cmd2buf_query_gpio_req(req_gpio_server, &busi_buf, &busi_buf_len);
+			if (req_gpio_server != NULL)
+				free(req_gpio_server);
+
+			// Communication with server
+			result = net_business_communicate((uint8_t*) "127.0.0.1", OC_GPIO_DEFAULT_PORT,
+					OC_REQ_QUERY_GPIO, busi_buf, busi_buf_len, &resp_pkg);
+			package_print_frame(resp_pkg);
+			OC_CMD_QUERY_GPIO_RESP* gpio_query_server = (OC_CMD_QUERY_GPIO_RESP*) resp_pkg->data;
+			//fprintf(stderr, "Info:result=%d io_status=%d io_status=%X p0=%d p1=%d p2=%d p3=%d p4=%d p5=%d p6=%d p7=%d\n", query_server->result, query_server->io_status, query_server->io_status, query_server->p0_status, query_server->p1_status, query_server->p2_status, query_server->p3_status, query_server->p4_status, query_server->p5_status, query_server->p6_status, query_server->p7_status);
+			//accoding to the actual gpio to get the door status (gpio5,gpio6,gpio7)
+			//======================================================
+			//
+			//                         there is three gpios to use (gpio5,gpio6,gpio7)
+			//
+			//======================================================
+#endif
+			
+			//s4:cjson serialzer
 			cJSON *root,*devices,*servers,*item;
 			char *out;
 			int i;
@@ -252,7 +277,8 @@ int main(int argc, char **argv) {
 			memset(tmp_str,0,32);
 			sprintf(tmp_str,"%.2f",query_cabinet->voice_db);
 			cJSON_AddStringToObject(root,"decibel",tmp_str);   
-
+			//door status
+			cJSON_AddBoolToObject(root,"door_status",gpio_query_server->p7_status);
 			// gps
 			if(query_cabinet->longitude != OC_GPS_COORD_UNDEF){
 				// longitude
