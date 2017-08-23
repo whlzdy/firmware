@@ -29,11 +29,13 @@
 #include "util/http_helper.h"
 #include "util/log_helper.h"
 #include "util/date_helper.h"
+#include "watch_dog.h"
 
 #include "app.h"
 
 using easywsclient::WebSocket;
 static WebSocket::pointer app_center_ws = NULL;
+
 
 #define APP_EVENT_IDLE					0x0001
 #define APP_EVENT_SETUP_WEB_CONN		0x0002
@@ -113,6 +115,8 @@ uint8_t shell_invoke_buf[MAX_SCRIPT_SHELL_BUFFER];
 // Timer thread
 pthread_t g_timer_thread_id = 0;
 int g_timer_running = OC_FALSE;
+
+pthread_t g_monitor_ethernet_id = 0; //used to monitor ethernet
 
 // Heart beat & watch dog
 int g_app_heart_beat_counter = 0;
@@ -633,6 +637,60 @@ static void* thread_timer_handle(void * param) {
 	return NULL;
 }
 
+
+/**
+ * Monitor ethernet thread
+ */
+static void* monitor_ethernet_handle(void * param) {
+	FILE * fp;
+	char c;
+	char ping_stream[512] = {0};
+	char * str;
+	struct timeval delay_time;
+	delay_time.tv_sec = 30;
+	delay_time.tv_usec = 0;
+	// timer thread loop
+	char time_temp_buf[32];
+	uint8_t script_result[MAX_CONSOLE_BUFFER];
+	char * ping_cmd= "ping www.baidu.com -c 3 -W 3 -I enp1s0";
+	int i;
+	int result = OC_SUCCESS;
+	while (g_timer_running) {
+        	log_info_print(g_debug_verbose, "monitor ethernet handle is running begin...");
+#if 1
+		fp = popen(ping_cmd,"r");
+        	//log_info_print(g_debug_verbose, "a");
+                i=0;
+		while((c=fgetc(fp)) != EOF)
+		{
+        		//log_info_print(g_debug_verbose, "b");
+			ping_stream[i++] =c;
+		}
+        	//log_info_print(g_debug_verbose, "c");
+		pclose(fp);
+        	//log_info_print(g_debug_verbose, "d");
+        	log_info_print(g_debug_verbose, "ping stream is %s",ping_stream);
+		str = strstr(ping_stream,"100% packet loss");
+		if(str != NULL)
+		{
+			log_info_print(g_debug_verbose, "route del....");
+			system("route del default");
+		}
+		else
+		{
+			system("route add default gw 172.28.101.1 enp1s0");
+		}
+#endif
+		select(0,NULL,NULL,NULL,&delay_time);
+        	log_info_print(g_debug_verbose, "monitor ethernet handle is running end...");
+	}
+
+	log_info_print(g_debug_verbose, "terminating Timer thread.");
+	pthread_exit(NULL);
+
+	return NULL;
+}
+
 /**
  * Main daemon
  */
@@ -699,6 +757,7 @@ int main(int argc, char **argv) {
 	s_addr_in.sin_family = AF_INET;
 	s_addr_in.sin_addr.s_addr = inet_addr("127.0.0.1");
 	s_addr_in.sin_port = htons(g_config->app_port);
+ 	log_info_print(g_debug_verbose, "bind ...");
 	fd_temp = bind(sockfd_server, (struct sockaddr *) (&s_addr_in), sizeof(s_addr_in));
 	if (fd_temp == -1) {
 		log_error_print(g_debug_verbose, "bind error!");
@@ -720,6 +779,19 @@ int main(int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 	pthread_detach(g_timer_thread_id);
+
+#if 1
+	///////////////////////////////////////////////////////////
+	// thread monitor ethernet is 
+	///////////////////////////////////////////////////////////
+ 	log_info_print(g_debug_verbose, "monitor ethernet is creating...");
+	if (pthread_create(&g_monitor_ethernet_id, NULL, monitor_ethernet_handle,NULL) == -1) {
+		log_error_print(g_debug_verbose, "monitor ethernet  thread create error!");
+		exit(EXIT_FAILURE);
+	}
+	pthread_detach(g_monitor_ethernet_id);
+#endif
+	
 
 	///////////////////////////////////////////////////////////
 	// Main service loop
