@@ -22,12 +22,12 @@ fi
 
 
 systemlogpath="/opt/onecloud/log"
-systemlimit=100
-systemcurrentnum="$(/bin/ls -rt ${systemlogpath} | /bin/grep daemon | /bin/wc -l)"
-if [ ${systemcurrentnum} -gt "${limit}" ]
+systemlimit=50
+systemcurrentnum="$(/bin/ls -rt ${systemlogpath} | /bin/grep -E 'daemon' | /bin/wc -l)"
+if [ ${systemcurrentnum} -gt "${systemlimit}" ]
 then
 	systemdelnum=`/bin/expr $systemcurrentnum - $systemlimit`
-	systemdelfiles="$(/bin/ls -rt ${systemlogpath} | /bin/grep daemon | /bin/head -n ${systemdelnum})"
+	systemdelfiles="$(/bin/ls -rt ${systemlogpath} | /bin/grep -E 'daemon' | /bin/head -n ${systemdelnum})"
 
 	for file in ${systemdelfiles}
         do
@@ -35,3 +35,19 @@ then
         done
 
 fi
+
+systemlogpath="/opt/onecloud/log"
+systemlimit=2
+systemcurrentnum="$(/bin/ls -rt ${systemlogpath} | /bin/grep -E 'watch_dog' | /bin/wc -l)"
+if [ ${systemcurrentnum} -gt "${systemlimit}" ]
+then
+        systemdelnum=`/bin/expr $systemcurrentnum - $systemlimit`
+        systemdelfiles="$(/bin/ls -rt ${systemlogpath} | /bin/grep -E 'watch_dog' | /bin/head -n ${systemdelnum})"
+
+        for file in ${systemdelfiles}
+        do
+                /bin/rm -f ${systemlogpath}/${file}
+        done
+
+fi
+
