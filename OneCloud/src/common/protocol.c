@@ -264,7 +264,8 @@ int generate_cmd_query_cabinet_req(OC_CMD_QUERY_CABINET_REQ ** out_req, uint32_t
  */
 int generate_cmd_query_cabinet_resp(OC_CMD_QUERY_CABINET_RESP ** out_resp, uint32_t status,
 		float kwh, float voltage, float current, float temperature, float watt, float voice_db,
-		float longitude, float latitude, int mcc, int mnc, int lac, int ci, time_t start_time) {
+		float longitude, float latitude, int mcc, int mnc, int lac, int ci, time_t start_time,
+		int door1, int door2) {
 	int result = OC_SUCCESS;
 
 	OC_CMD_QUERY_CABINET_RESP* resp = (OC_CMD_QUERY_CABINET_RESP*) malloc(
@@ -287,6 +288,8 @@ int generate_cmd_query_cabinet_resp(OC_CMD_QUERY_CABINET_RESP ** out_resp, uint3
 	resp->mnc = mnc;
 	resp->lac = lac;
 	resp->ci = ci;
+	resp->door1 = door1;
+	resp->door2 = door2;
 
 	*out_resp = resp;
 

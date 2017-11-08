@@ -37,7 +37,7 @@ char g_config_file[256];
 struct settings *g_config = NULL;
 
 void cmd_helper() {
-	fprintf(stderr, "usage: monitor_client type=<cabinet|server|cg|qg|qt|qe|ce|qv|qgps|qgpsusb|all> [server_id=<string>] [event=<int>]\n");
+	fprintf(stderr, "usage: monitor_client type=<cabinet|server|cg|qg|qt|qe|ce|qv|qgps|qgpsusb|qlbs|all> [server_id=<string>] [event=<int>]\n");
 }
 
 #define QUERY_TYPE_CABINET		0

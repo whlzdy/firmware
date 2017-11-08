@@ -84,7 +84,7 @@ LED_STATUS dev_led_1;
 LED_STATUS dev_led_2;
 LED_STATUS dev_led_3;
 //LED_STATUS dev_led_4;
-uint32_t button_2;
+uint32_t button_2;// 0: door close, 1: door open
 uint32_t button_3;
 uint32_t button_4;
 CONTROL_MESSAGE receive_message;

@@ -104,6 +104,8 @@ typedef struct oc_cmd_query_cabinet_resp{
 	int      mnc;
 	int      lac;
 	int      ci;
+	int      door1;           // 0: door close, 1: door open
+	int      door2;
 	int	     reserved_1;
 	float	 reserved_2;
 } OC_CMD_QUERY_CABINET_RESP;
@@ -709,7 +711,7 @@ int generate_cmd_query_cabinet_req(OC_CMD_QUERY_CABINET_REQ ** out_req,	uint32_t
 int generate_cmd_query_cabinet_resp(OC_CMD_QUERY_CABINET_RESP ** out_resp,
 		uint32_t status, float kwh, float voltage, float current,
 		float temperature, float watt, float voice_db, float longitude, float latitude,
-		int mcc, int mnc, int lac, int ci, time_t start_time);
+		int mcc, int mnc, int lac, int ci, time_t start_time, int door1, int door2);
 
 /**
  * Translate request command to buffer: Cabinet query.
