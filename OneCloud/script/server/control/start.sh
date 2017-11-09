@@ -31,38 +31,43 @@ log "START_POWERONE_BEGIN" "SUCCESS" "begin to start powerone, and parameter is 
 ###########################################################
 # 0: check disk array is already on
 ###########################################################
-# init
-$(startWriteStatus 1 0)
-
-# checking
-$(startWriteStatus 1 1)
-
-for((k=1;k<32;k++))
-do
-	result="$(checkIscsiConnection ${iscsiip1})"
-	if [ "${result}" -eq "0" ]
-	then
-		# success
-		log "CONNECT_ISCSI" "SUCCESS" "check iscsi ${iscsiip1} ${iscsiip2} success!"
-		$(startWriteStatus 1 2 )
-		break
-	else
-		log "CONNECT_ISCSI" "FAIL" "we have check iscsi ${iscsiip1} ${iscsiip2} for ${k} loops and fail!"
-		sleep 15
-	fi
-done
-
-if [ "${k}" -eq "32" ]
+if [ ${iscsiip1} != "null" ]
 then
-        log "CONNECT_ISCSI" "FAIL" "we have waited for ${k} loops! and finally fail"
-        log "START_POWERONE_END" "FAIL" "fail to connect iscsi"
-        echo "FAIL_CONNECT_ISCSI"
-	$(startWriteStatus 1 3)
-        exit 5
+	# init
+	$(startWriteStatus 1 0)
+
+	# checking
+	$(startWriteStatus 1 1)
+
+	for((k=1;k<32;k++))
+	do
+		result="$(checkIscsiConnection ${iscsiip1})"
+		if [ "${result}" -eq "0" ]
+		then
+			# success
+			log "CONNECT_ISCSI" "SUCCESS" "check iscsi ${iscsiip1} ${iscsiip2} success!"
+			$(startWriteStatus 1 2 )
+			break
+		else
+			log "CONNECT_ISCSI" "FAIL" "we have check iscsi ${iscsiip1} ${iscsiip2} for ${k} loops and fail!"
+			sleep 15
+		fi
+	done
+
+	if [ "${k}" -eq "32" ]
+	then
+        	log "CONNECT_ISCSI" "FAIL" "we have waited for ${k} loops! and finally fail"
+	        log "START_POWERONE_END" "FAIL" "fail to connect iscsi"
+        	echo "FAIL_CONNECT_ISCSI"
+		$(startWriteStatus 1 3)
+        	exit 5
+	fi
 fi
+
 
 # wait bmc ip is up for protection
 sleep 60
+
 
 ###########################################################
 # 1:start primary server
