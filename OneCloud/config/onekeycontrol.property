@@ -1,5 +1,6 @@
 # iscsi ip address
-iscsiip1="172.28.101.101"
+#iscsiip1="172.28.101.101"
+iscsiip1="null"
 #iscsiip2="192.168.153.11"
 
 # ipmi username and password

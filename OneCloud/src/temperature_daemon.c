@@ -507,8 +507,9 @@ static void* thread_com_temperature_handle(void*) {
 		script_shell_exec((unsigned char*) "/opt/onecloud/script/temperature/getusbno.sh",
 				script_result);
 		if (strlen((char*) script_result) < 2) {
-			log_error_print(g_debug_verbose, "temperature device not found!");
-			exit(EXIT_FAILURE);
+			log_error_print(g_debug_verbose, "temperature device not found! retry in 60s.");
+			sleep(60);
+			continue;
 		}
 		memcpy(device_name, "/dev/", 5);
 		memcpy(device_name + 5, script_result, strlen((char*) script_result) - 1);

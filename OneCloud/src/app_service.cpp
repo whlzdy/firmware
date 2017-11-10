@@ -1941,8 +1941,18 @@ void web_make_cabinet_status_parameters(OC_CMD_QUERY_CABINET_RESP* query_cabinet
 	if ((g_cabinet_status == OC_CABINET_STATUS_RUNNING
 			|| g_cabinet_status == OC_CABINET_STATUS_STOPPING) && query_cabinet->start_time > 0)
 		running_time = now_time - query_cabinet->start_time;
-	sprintf(temp, "uptime=%ld", running_time);
+	sprintf(temp, "uptime=%ld:", running_time);
 	strcat(custome, temp);
+
+	// door1
+	memset((void*) temp, 0, sizeof(temp));
+	sprintf(temp, "door1=%d:", query_cabinet->door1);
+	strcat(custome, temp);
+	// door2
+	memset((void*) temp, 0, sizeof(temp));
+	sprintf(temp, "door2=%d", query_cabinet->door2);
+	strcat(custome, temp);
+
 
 	//devices
 	if (query_server->server_num > 0) {

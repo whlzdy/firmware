@@ -67,6 +67,7 @@ int collect_cabinet_voice_db(float* out_voice_db);
 int collect_cabinet_gps_loc(float* out_longitude, float* out_latitude, float* out_altitude);
 int collect_cabinet_gpsusb_loc(float* out_longitude, float* out_latitude, float* out_altitude);
 int collect_cabinet_lbs(int* out_mcc, int* out_mnc, int* out_lac, int* out_ci);
+int collect_cabinet_door(int* door1, int* door2);
 int call_cabinet_power_on();
 int call_cabinet_power_off();
 
@@ -639,6 +640,8 @@ int main_busi_query_cabinet_status(unsigned char* req_buf, int req_len, unsigned
 	int mnc = 0;
 	int lac = OC_LBS_BSTN_UNDEF;
 	int ci = OC_LBS_BSTN_UNDEF;
+	int door1 = 0;
+	int door2 = 0;
 	time_t start_time = g_cabinet_start_time;
 	collect_cabinet_temperature(&temperature);
 	collect_cabinet_electricity(&kwh, &voltage, &current, &watt);
@@ -653,9 +656,10 @@ int main_busi_query_cabinet_status(unsigned char* req_buf, int req_len, unsigned
 	if(g_config->lbs_port >0){
 		collect_cabinet_lbs(&mcc, &mnc, &lac, &ci);
 	}
+	collect_cabinet_door(&door1, &door2);
 
 	result = generate_cmd_query_cabinet_resp(&resp, status, kwh, voltage, current, temperature,
-			watt, voice_db, longitude, latitude, mcc, mnc, lac, ci, start_time);
+			watt, voice_db, longitude, latitude, mcc, mnc, lac, ci, start_time, door1, door2);
 	if (resp == NULL)
 		result = OC_FAILURE;
 
@@ -1695,6 +1699,51 @@ int collect_cabinet_lbs(int* out_mcc, int* out_mnc, int* out_lac, int* out_ci) {
 		*out_mnc = 0;
 		*out_lac = OC_LBS_BSTN_UNDEF;
 		*out_ci = OC_LBS_BSTN_UNDEF;
+	}
+
+	if (resp_pkg != NULL)
+		free_network_package(resp_pkg);
+
+	return result;
+}
+
+/**
+ * Collect cabinet door information.
+ */
+int collect_cabinet_door(int* door1, int* door2) {
+	int result = OC_SUCCESS;
+
+	// Construct the command
+	uint8_t* busi_buf = NULL;
+	int busi_buf_len = 0;
+
+	OC_CMD_QUERY_GPIO_REQ * req_query_gpio = NULL;
+	result = generate_cmd_query_gpio_req(&req_query_gpio, 0);
+	result = translate_cmd2buf_query_gpio_req(req_query_gpio, &busi_buf,
+			&busi_buf_len);
+	if (req_query_gpio != NULL)
+		free(req_query_gpio);
+
+	OC_NET_PACKAGE* resp_pkg = NULL;
+	OC_CMD_QUERY_GPIO_RESP* resp_query_gpio = NULL;
+	result = net_business_communicate((uint8_t*) OC_LOCAL_IP, g_config->gpio_port,
+			OC_REQ_QUERY_GPIO, busi_buf, busi_buf_len, &resp_pkg);
+	free(busi_buf);
+
+	if (result == OC_SUCCESS && resp_pkg != NULL) {
+		log_debug_print(g_debug_verbose,
+				"Query door, net_business_communicate return OC_SUCCESS");
+
+		// notify the invoker
+		resp_query_gpio = (OC_CMD_QUERY_GPIO_RESP*) resp_pkg->data;
+
+		*door1 = resp_query_gpio->p7_status;
+		*door2 = resp_query_gpio->p6_status;
+	} else {
+		log_debug_print(g_debug_verbose,
+				"Query door, net_business_communicate return OC_FAILURE");
+		*door1 = 0;
+		*door2 = 0;
 	}
 
 	if (resp_pkg != NULL)
